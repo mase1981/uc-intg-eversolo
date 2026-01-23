@@ -278,8 +278,9 @@ async def test_integration():
             if sources:
                 first_source_tag = list(sources.keys())[0]
                 first_source_name = sources[first_source_tag]
+                # Pass the source NAME, not the TAG
                 result = await media_player.handle_command(
-                    media_player, "select_source", {"source": first_source_tag}
+                    media_player, "select_source", {"source": first_source_name}
                 )
                 if result == StatusCodes.OK:
                     await asyncio.sleep(2)  # Wait for state update
@@ -298,7 +299,7 @@ async def test_integration():
         print("[TEST 12/12] Verifying continuous polling over 5 seconds...")
         update_count = [0]  # Use list to allow modification in closure
 
-        def count_updates(_event_data):
+        def count_updates(update=None, **kwargs):
             update_count[0] += 1
 
         from ucapi_framework import DeviceEvents
