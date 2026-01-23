@@ -30,6 +30,7 @@ class EversoloStateSensor(Sensor):
         super().__init__(
             entity_id,
             f"{device_config.name} State",
+            [],  # features - no specific features needed
             {
                 Attributes.STATE: States.UNAVAILABLE,
                 Attributes.VALUE: "Unknown",
@@ -64,6 +65,7 @@ class EversoloSourceSensor(Sensor):
         super().__init__(
             entity_id,
             f"{device_config.name} Source",
+            [],  # features - no specific features needed
             {
                 Attributes.STATE: States.UNAVAILABLE,
                 Attributes.VALUE: "Unknown",
@@ -98,6 +100,7 @@ class EversoloVolumeSensor(Sensor):
         super().__init__(
             entity_id,
             f"{device_config.name} Volume",
+            [],  # features - no specific features needed
             {
                 Attributes.STATE: States.UNAVAILABLE,
                 Attributes.VALUE: 0,
