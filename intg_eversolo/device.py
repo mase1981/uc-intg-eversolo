@@ -21,7 +21,7 @@ class EversoloDevice(PollingDevice):
     """Eversolo device implementation using PollingDevice."""
 
     def __init__(self, device_config: EversoloConfig, **kwargs):
-        super().__init__(device_config, **kwargs)
+        super().__init__(device_config, poll_interval=1, **kwargs)
         self._device_config = device_config
         self._session: aiohttp.ClientSession | None = None
         self._state_data: dict[str, Any] = {}
@@ -138,11 +138,11 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
 
             _LOG.debug("[%s] >>> Emitting UPDATE event", self.log_id)
-            self.emit(DeviceEvents.UPDATE, {})
+            self.events.emit(DeviceEvents.UPDATE, update={})
             _LOG.debug("[%s] >>> Poll completed successfully", self.log_id)
 
         except Exception as err:
-            _LOG.debug("[%s] Poll error: %s", self.log_id, err)
+            _LOG.debug("[%s] Poll error: %s", self.log_id, err, exc_info=True)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""
