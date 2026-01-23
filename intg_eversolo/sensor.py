@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 from ucapi.sensor import Attributes, DeviceClasses, Sensor, States
+from ucapi_framework import DeviceEvents
 
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
@@ -36,7 +37,7 @@ class EversoloStateSensor(Sensor):
             device_class=None,
         )
 
-        self._device.on(EversoloDevice.EVENTS.UPDATE, self._on_device_update)
+        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
 
     def _on_device_update(self, _event_data: dict[str, Any]) -> None:
         """Handle device update events."""
@@ -70,7 +71,7 @@ class EversoloSourceSensor(Sensor):
             device_class=None,
         )
 
-        self._device.on(EversoloDevice.EVENTS.UPDATE, self._on_device_update)
+        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
 
     def _on_device_update(self, _event_data: dict[str, Any]) -> None:
         """Handle device update events."""
@@ -105,7 +106,7 @@ class EversoloVolumeSensor(Sensor):
             device_class=None,
         )
 
-        self._device.on(EversoloDevice.EVENTS.UPDATE, self._on_device_update)
+        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
 
     def _on_device_update(self, _event_data: dict[str, Any]) -> None:
         """Handle device update events."""
