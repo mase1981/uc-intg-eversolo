@@ -42,7 +42,9 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
 
     def _create_output_buttons(self, cfg: EversoloConfig, dev: EversoloDevice):
         """Create button entities for all possible Eversolo outputs."""
-        # Common Eversolo outputs - buttons will work if device has them enabled
+        # Common Eversolo outputs with tags and user-friendly display names
+        # Tags match API format, names are for UI display
+        # Flexible matching will handle device-specific variations like "Analog-RCA" vs "RCA"
         all_outputs = {
             "rca": "RCA",
             "xlr": "XLR",
@@ -56,5 +58,5 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
         for tag, name in all_outputs.items():
             buttons.append(EversoloOutputButton(cfg, dev, tag, name))
 
-        _LOG.debug(f"Created {len(buttons)} output button entities for {cfg.name}")
+        _LOG.info("Created %d output button entities for %s", len(buttons), cfg.name)
         return buttons
