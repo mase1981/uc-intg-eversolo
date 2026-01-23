@@ -64,8 +64,31 @@ class EversoloDevice(PollingDevice):
         if not self._session:
             self._session = aiohttp.ClientSession()
 
-    async def _close_session(self) -> None:
-        """Close HTTP session."""
+    async def establish_connection(self) -> bool:
+        """Establish connection to device - required by PollingDevice."""
+        _LOG.info("[%s] Establishing connection to Eversolo device", self.log_id)
+
+        try:
+            await self._create_session()
+
+            music_state = await self._api_request(
+                "/ZidooMusicControl/v2/getState", timeout=5.0
+            )
+
+            if music_state:
+                _LOG.info("[%s] Connection established successfully", self.log_id)
+                return True
+
+            _LOG.error("[%s] Failed to establish connection - no response", self.log_id)
+            return False
+
+        except Exception as err:
+            _LOG.error("[%s] Connection failed: %s", self.log_id, err)
+            await self.close_connection()
+            return False
+
+    async def close_connection(self) -> None:
+        """Close connection - required by PollingDevice."""
         if self._session:
             await self._session.close()
             self._session = None
@@ -100,32 +123,12 @@ class EversoloDevice(PollingDevice):
             raise
 
     async def connect(self) -> bool:
-        """Connect to device."""
-        _LOG.info("[%s] Connecting to Eversolo device", self.log_id)
-
-        try:
-            await self._create_session()
-
-            music_state = await self._api_request(
-                "/ZidooMusicControl/v2/getState", timeout=5.0
-            )
-
-            if music_state:
-                _LOG.info("[%s] Successfully connected", self.log_id)
-                return True
-
-            _LOG.error("[%s] Failed to connect - no response", self.log_id)
-            return False
-
-        except Exception as err:
-            _LOG.error("[%s] Connection failed: %s", self.log_id, err)
-            await self._close_session()
-            return False
+        """Connect to device - wrapper for setup flow."""
+        return await self.establish_connection()
 
     async def disconnect(self) -> None:
-        """Disconnect from device."""
-        _LOG.info("[%s] Disconnecting", self.log_id)
-        await self._close_session()
+        """Disconnect from device - wrapper for setup flow."""
+        await self.close_connection()
 
     async def poll_device(self) -> None:
         """Poll device for current state."""
