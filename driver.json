@@ -1,0 +1,38 @@
+{
+  "driver_id": "eversolo",
+  "version": "1.0.0",
+  "min_core_api": "0.22.0",
+  "name": {
+    "en": "Eversolo"
+  },
+  "icon": "uc:music",
+  "description": {
+    "en": "Integration for Eversolo music streamers and DACs with full media player support"
+  },
+  "developer": {
+    "name": "Meir Miyara",
+    "email": "meir.miyara@gmail.com"
+  },
+  "home_page": "https://github.com/mase1981/uc-intg-eversolo",
+  "release_date": "2026-01-23",
+  "setup_data_schema": {
+    "title": {
+      "en": "Eversolo Setup"
+    },
+    "settings": [
+      {
+        "id": "info",
+        "label": {
+          "en": "Setup information"
+        },
+        "field": {
+          "label": {
+            "value": {
+              "en": "Enter your Eversolo device IP address. The integration connects via HTTP API to provide full control of your music streamer."
+            }
+          }
+        }
+      }
+    ]
+  }
+}

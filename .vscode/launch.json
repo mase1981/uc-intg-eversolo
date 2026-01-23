@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "intg_eversolo",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "UC_CONFIG_HOME": "${workspaceFolder}",
+                "UC_INTEGRATION_INTERFACE": "0.0.0.0",
+                "UC_INTEGRATION_HTTP_PORT": "9090",
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}
