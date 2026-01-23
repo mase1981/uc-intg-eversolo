@@ -52,7 +52,7 @@ class EversoloStateSensor(Sensor):
             self.attributes[Attributes.STATE] = States.UNAVAILABLE
             self.attributes[Attributes.VALUE] = "Unknown"
         else:
-            self.attributes[Attributes.STATE] = States.AVAILABLE
+            self.attributes[Attributes.STATE] = States.ON
             self.attributes[Attributes.VALUE] = state
 
 
@@ -88,7 +88,7 @@ class EversoloSourceSensor(Sensor):
         source = self._device.get_current_source()
 
         if source:
-            self.attributes[Attributes.STATE] = States.AVAILABLE
+            self.attributes[Attributes.STATE] = States.ON
             self.attributes[Attributes.VALUE] = source
         else:
             self.attributes[Attributes.STATE] = States.UNAVAILABLE
@@ -128,7 +128,7 @@ class EversoloVolumeSensor(Sensor):
         volume = self._device.get_volume()
 
         if volume is not None:
-            self.attributes[Attributes.STATE] = States.AVAILABLE
+            self.attributes[Attributes.STATE] = States.ON
             self.attributes[Attributes.VALUE] = volume
         else:
             self.attributes[Attributes.STATE] = States.UNAVAILABLE

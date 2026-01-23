@@ -29,13 +29,11 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
             device_class=EversoloDevice,
             entity_classes=[
                 EversoloMediaPlayer,
-                # Sensors temporarily disabled due to framework subscription issues
-                # TODO: Re-enable sensors once proper entity lifecycle pattern is identified
-                # lambda cfg, dev: [
-                #     EversoloStateSensor(cfg, dev),
-                #     EversoloSourceSensor(cfg, dev),
-                #     EversoloVolumeSensor(cfg, dev),
-                # ],
+                lambda cfg, dev: [
+                    EversoloStateSensor(cfg, dev),
+                    EversoloSourceSensor(cfg, dev),
+                    EversoloVolumeSensor(cfg, dev),
+                ],
             ],
             driver_id="eversolo",
         )
