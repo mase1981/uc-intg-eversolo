@@ -122,14 +122,6 @@ class EversoloDevice(PollingDevice):
             _LOG.error("[%s] Unexpected error: %s - %s", self.log_id, endpoint, err)
             raise
 
-    async def connect(self) -> bool:
-        """Connect to device - wrapper for setup flow."""
-        return await self.establish_connection()
-
-    async def disconnect(self) -> None:
-        """Disconnect from device - wrapper for setup flow."""
-        await self.close_connection()
-
     async def poll_device(self) -> None:
         """Poll device for current state."""
         try:
