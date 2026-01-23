@@ -55,6 +55,7 @@ class EversoloMediaPlayer(MediaPlayer):
                 Features.MEDIA_DURATION,
                 Features.MEDIA_POSITION,
                 Features.SELECT_SOURCE,
+                Features.SELECT_SOUND_MODE,
             ],
             {
                 Attributes.STATE: States.UNAVAILABLE,
@@ -62,6 +63,8 @@ class EversoloMediaPlayer(MediaPlayer):
                 Attributes.MUTED: False,
                 Attributes.SOURCE: "",
                 Attributes.SOURCE_LIST: [],
+                Attributes.SOUND_MODE: None,
+                Attributes.SOUND_MODE_LIST: [],
             },
             device_class=DeviceClasses.STREAMING_BOX,
             cmd_handler=self.handle_command,
@@ -97,6 +100,15 @@ class EversoloMediaPlayer(MediaPlayer):
         if self._device.sources:
             self.attributes[Attributes.SOURCE_LIST] = list(
                 self._device.sources.values()
+            )
+
+        current_output = self._device.get_current_output()
+        if current_output:
+            self.attributes[Attributes.SOUND_MODE] = current_output
+
+        if self._device.outputs:
+            self.attributes[Attributes.SOUND_MODE_LIST] = list(
+                self._device.outputs.values()
             )
 
         media_info = self._device.get_media_info()
@@ -172,6 +184,12 @@ class EversoloMediaPlayer(MediaPlayer):
             elif cmd_id == Commands.SELECT_SOURCE:
                 if params and "source" in params:
                     success = await self._device.select_source(params["source"])
+                    return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
+                return StatusCodes.BAD_REQUEST
+
+            elif cmd_id == Commands.SELECT_SOUND_MODE:
+                if params and "mode" in params:
+                    success = await self._device.select_output(params["mode"])
                     return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
                 return StatusCodes.BAD_REQUEST
 

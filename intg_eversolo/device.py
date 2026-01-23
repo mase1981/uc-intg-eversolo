@@ -27,6 +27,8 @@ class EversoloDevice(PollingDevice):
         self._state_data: dict[str, Any] = {}
         self._sources: dict[str, str] = {}
         self._source_tags: dict[str, str] = {}
+        self._outputs: dict[str, str] = {}
+        self._output_tags: dict[str, str] = {}
 
     @property
     def identifier(self) -> str:
@@ -58,6 +60,11 @@ class EversoloDevice(PollingDevice):
     def sources(self) -> dict[str, str]:
         """Available input sources {tag: name}."""
         return self._sources
+
+    @property
+    def outputs(self) -> dict[str, str]:
+        """Available outputs {tag: name}."""
+        return self._outputs
 
     async def _create_session(self) -> None:
         """Create HTTP session."""
@@ -136,6 +143,7 @@ class EversoloDevice(PollingDevice):
             if input_output_state:
                 self._state_data["input_output_state"] = input_output_state
                 self._parse_sources(input_output_state)
+                self._parse_outputs(input_output_state)
 
             _LOG.debug("[%s] >>> Emitting UPDATE event", self.log_id)
             self.events.emit(DeviceEvents.UPDATE, update={})
@@ -156,6 +164,21 @@ class EversoloDevice(PollingDevice):
             if tag and name:
                 self._sources[tag] = name
                 self._source_tags[name] = tag
+
+    def _parse_outputs(self, input_output_state: dict) -> None:
+        """Parse and store available outputs (only enabled ones)."""
+        outputs = input_output_state.get("outputData", [])
+        self._outputs = {}
+        self._output_tags = {}
+
+        # Filter only enabled outputs
+        for output in outputs:
+            if output.get("enable") == 1:
+                tag = output.get("tag", "").replace("/", "")
+                name = output.get("name", "")
+                if tag and name:
+                    self._outputs[tag] = name
+                    self._output_tags[name] = tag
 
     def get_volume(self) -> int | None:
         """Get current volume level (0-100 scale)."""
@@ -197,6 +220,16 @@ class EversoloDevice(PollingDevice):
 
         if input_index >= 0 and input_index < len(self._sources):
             return list(self._sources.values())[input_index]
+
+        return None
+
+    def get_current_output(self) -> str | None:
+        """Get current output name."""
+        input_output_state = self._state_data.get("input_output_state", {})
+        output_index = input_output_state.get("outputIndex", -1)
+
+        if output_index >= 0 and output_index < len(self._outputs):
+            return list(self._outputs.values())[output_index]
 
         return None
 
@@ -376,4 +409,22 @@ class EversoloDevice(PollingDevice):
             return True
         except Exception as err:
             _LOG.error("[%s] Select source failed: %s", self.log_id, err)
+            return False
+
+    async def select_output(self, output: str) -> bool:
+        """Select output by name."""
+        tag = self._output_tags.get(output)
+        if not tag:
+            _LOG.error("[%s] Unknown output: %s", self.log_id, output)
+            return False
+
+        try:
+            index = list(self._outputs.keys()).index(tag)
+            await self._api_request(
+                f"/ZidooMusicControl/v2/setOutInputList?tag={tag}&index={index}",
+                parse_json=False,
+            )
+            return True
+        except Exception as err:
+            _LOG.error("[%s] Select output failed: %s", self.log_id, err)
             return False
