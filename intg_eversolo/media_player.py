@@ -67,10 +67,13 @@ class EversoloMediaPlayer(MediaPlayer):
             cmd_handler=self.handle_command,
         )
 
+        _LOG.debug("[%s] >>> Subscribing to device UPDATE events", entity_id)
         self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
+        _LOG.debug("[%s] >>> Successfully subscribed to device UPDATE events", entity_id)
 
     def _on_device_update(self, _event_data: dict[str, Any]) -> None:
         """Handle device update events."""
+        _LOG.debug("[%s] >>> Received UPDATE event from device", self.id)
         volume = self._device.get_volume()
         if volume is not None:
             self.attributes[Attributes.VOLUME] = volume

@@ -124,6 +124,7 @@ class EversoloDevice(PollingDevice):
 
     async def poll_device(self) -> None:
         """Poll device for current state."""
+        _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, self.poll_interval)
         try:
             music_state = await self._api_request("/ZidooMusicControl/v2/getState")
             input_output_state = await self._api_request(
@@ -136,7 +137,9 @@ class EversoloDevice(PollingDevice):
                 self._state_data["input_output_state"] = input_output_state
                 self._parse_sources(input_output_state)
 
+            _LOG.debug("[%s] >>> Emitting UPDATE event", self.log_id)
             self.emit(DeviceEvents.UPDATE, {})
+            _LOG.debug("[%s] >>> Poll completed successfully", self.log_id)
 
         except Exception as err:
             _LOG.debug("[%s] Poll error: %s", self.log_id, err)
