@@ -10,6 +10,7 @@ from typing import Any
 
 from ucapi.sensor import Attributes, DeviceClasses, Sensor, States
 from ucapi_framework import DeviceEvents
+from ucapi_framework.entity import Entity
 
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
@@ -17,7 +18,7 @@ from intg_eversolo.device import EversoloDevice
 _LOG = logging.getLogger(__name__)
 
 
-class EversoloStateSensor(Sensor):
+class EversoloStateSensor(Sensor, Entity):
     """Eversolo playback state sensor."""
 
     def __init__(self, device_config: EversoloConfig, device: EversoloDevice):
@@ -55,8 +56,12 @@ class EversoloStateSensor(Sensor):
             self.attributes[Attributes.STATE] = States.ON
             self.attributes[Attributes.VALUE] = state
 
+        # Notify framework of attribute changes (if API is available)
+        if hasattr(self, "_api"):
+            self.update_attributes(self.attributes)
 
-class EversoloSourceSensor(Sensor):
+
+class EversoloSourceSensor(Sensor, Entity):
     """Eversolo current source sensor."""
 
     def __init__(self, device_config: EversoloConfig, device: EversoloDevice):
@@ -94,8 +99,12 @@ class EversoloSourceSensor(Sensor):
             self.attributes[Attributes.STATE] = States.UNAVAILABLE
             self.attributes[Attributes.VALUE] = "Unknown"
 
+        # Notify framework of attribute changes (if API is available)
+        if hasattr(self, "_api"):
+            self.update_attributes(self.attributes)
 
-class EversoloVolumeSensor(Sensor):
+
+class EversoloVolumeSensor(Sensor, Entity):
     """Eversolo volume sensor."""
 
     def __init__(self, device_config: EversoloConfig, device: EversoloDevice):
@@ -133,3 +142,7 @@ class EversoloVolumeSensor(Sensor):
         else:
             self.attributes[Attributes.STATE] = States.UNAVAILABLE
             self.attributes[Attributes.VALUE] = 0
+
+        # Notify framework of attribute changes (if API is available)
+        if hasattr(self, "_api"):
+            self.update_attributes(self.attributes)
