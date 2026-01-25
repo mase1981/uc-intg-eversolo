@@ -21,7 +21,8 @@ class EversoloDevice(PollingDevice):
     """Eversolo device implementation using PollingDevice."""
 
     def __init__(self, device_config: EversoloConfig, **kwargs):
-        super().__init__(device_config, poll_interval=1, **kwargs)
+        # Eversolo devices are slow to respond - use 5 second poll interval
+        super().__init__(device_config, poll_interval=5, **kwargs)
         self._device_config = device_config
         self._session: aiohttp.ClientSession | None = None
         self._state_data: dict[str, Any] = {}
@@ -48,8 +49,8 @@ class EversoloDevice(PollingDevice):
 
     @property
     def poll_interval(self) -> float:
-        """Polling interval in seconds."""
-        return 1.0
+        """Polling interval in seconds - Eversolo devices are slow, use 5s."""
+        return 5.0
 
     @property
     def state_data(self) -> dict[str, Any]:
@@ -69,11 +70,11 @@ class EversoloDevice(PollingDevice):
     async def _create_session(self) -> None:
         """Create HTTP session with proper timeout and connector configuration."""
         if not self._session:
-            # Configure timeouts - Eversolo devices can be slow to respond
+            # Configure timeouts - Eversolo devices are VERY slow to respond
             timeout = aiohttp.ClientTimeout(
-                total=30,      # Total timeout for entire request
-                connect=10,    # Timeout for connection establishment
-                sock_read=15   # Timeout for reading from socket
+                total=60,      # Total timeout for entire request
+                connect=20,    # Timeout for connection establishment
+                sock_read=30   # Timeout for reading from socket
             )
 
             # Configure TCP connector for better reliability
@@ -121,7 +122,7 @@ class EversoloDevice(PollingDevice):
             self._session = None
 
     async def _api_request(
-        self, endpoint: str, parse_json: bool = True, timeout: float = 10.0
+        self, endpoint: str, parse_json: bool = True, timeout: float = 20.0
     ) -> Any:
         """Make API request to device."""
         if not self._session:
@@ -154,9 +155,10 @@ class EversoloDevice(PollingDevice):
         """Poll device for current state."""
         _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, self.poll_interval)
         try:
-            music_state = await self._api_request("/ZidooMusicControl/v2/getState")
+            # Use longer timeout for polling - Eversolo devices are very slow
+            music_state = await self._api_request("/ZidooMusicControl/v2/getState", timeout=30.0)
             input_output_state = await self._api_request(
-                "/ZidooMusicControl/v2/getInputAndOutputList"
+                "/ZidooMusicControl/v2/getInputAndOutputList", timeout=30.0
             )
 
             self._state_data["music_control_state"] = music_state
