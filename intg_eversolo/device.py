@@ -67,9 +67,26 @@ class EversoloDevice(PollingDevice):
         return self._outputs
 
     async def _create_session(self) -> None:
-        """Create HTTP session."""
+        """Create HTTP session with proper timeout and connector configuration."""
         if not self._session:
-            self._session = aiohttp.ClientSession()
+            # Configure timeouts - Eversolo devices can be slow to respond
+            timeout = aiohttp.ClientTimeout(
+                total=30,      # Total timeout for entire request
+                connect=10,    # Timeout for connection establishment
+                sock_read=15   # Timeout for reading from socket
+            )
+
+            # Configure TCP connector for better reliability
+            connector = aiohttp.TCPConnector(
+                limit=10,                      # Max simultaneous connections
+                force_close=False,             # Reuse connections
+                enable_cleanup_closed=True     # Clean up closed connections
+            )
+
+            self._session = aiohttp.ClientSession(
+                timeout=timeout,
+                connector=connector
+            )
 
     async def establish_connection(self) -> bool:
         """Establish connection to device - required by PollingDevice."""
@@ -78,8 +95,9 @@ class EversoloDevice(PollingDevice):
         try:
             await self._create_session()
 
+            # First connection might take longer - use generous timeout
             music_state = await self._api_request(
-                "/ZidooMusicControl/v2/getState", timeout=5.0
+                "/ZidooMusicControl/v2/getState", timeout=15.0
             )
 
             if music_state:
@@ -98,6 +116,8 @@ class EversoloDevice(PollingDevice):
         """Close connection - required by PollingDevice."""
         if self._session:
             await self._session.close()
+            # Wait for connector to close properly
+            await asyncio.sleep(0.25)
             self._session = None
 
     async def _api_request(
@@ -110,8 +130,9 @@ class EversoloDevice(PollingDevice):
         url = f"http://{self._device_config.host}:{self._device_config.port}{endpoint}"
 
         try:
-            async with asyncio.timeout(timeout):
-                response = await self._session.get(url)
+            # Use per-request timeout to override session defaults
+            request_timeout = aiohttp.ClientTimeout(total=timeout)
+            async with self._session.get(url, timeout=request_timeout) as response:
                 response.raise_for_status()
 
                 if parse_json:
