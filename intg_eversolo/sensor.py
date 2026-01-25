@@ -25,7 +25,7 @@ class EversoloStateSensor(Sensor):
         self._device = device
         self._device_config = device_config
 
-        entity_id = f"sensor.{device_config.identifier}_state"
+        entity_id = f"sensor.{device_config.identifier}.state"
 
         super().__init__(
             entity_id,
@@ -64,7 +64,7 @@ class EversoloSourceSensor(Sensor):
         self._device = device
         self._device_config = device_config
 
-        entity_id = f"sensor.{device_config.identifier}_source"
+        entity_id = f"sensor.{device_config.identifier}.source"
 
         super().__init__(
             entity_id,
@@ -103,7 +103,7 @@ class EversoloVolumeSensor(Sensor):
         self._device = device
         self._device_config = device_config
 
-        entity_id = f"sensor.{device_config.identifier}_volume"
+        entity_id = f"sensor.{device_config.identifier}.volume"
 
         super().__init__(
             entity_id,
