@@ -1,2 +1,2 @@
-ucapi-framework>=1.6.0
+ucapi-framework==1.7.2
 aiohttp>=3.9.0
