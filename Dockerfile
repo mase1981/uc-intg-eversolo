@@ -17,7 +17,7 @@ ENV UC_CONFIG_HOME="/config"
 ENV PYTHONPATH=/app
 
 LABEL org.opencontainers.image.source=https://github.com/mase1981/uc-intg-eversolo
-LABEL org.opencontainers.image.description="Monoprice HTP-1 AV Receiver integration for Unfolded Circle Remote"
+LABEL org.opencontainers.image.description="eversolo integration for Unfolded Circle Remote"
 LABEL org.opencontainers.image.licenses=MPL-2.0
 
-CMD ["python3", "-u", "-m", "intg_monoprice_htp1"]
+CMD ["python3", "-u", "-m", "intg_eversolo"]
