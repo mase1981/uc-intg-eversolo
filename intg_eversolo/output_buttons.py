@@ -32,7 +32,8 @@ class EversoloOutputButton(Button):
         self._output_tag = output_tag
         self._output_name = output_name
 
-        entity_id = f"button.{device_config.identifier}_output_{output_tag}"
+        # Use dot separator for proper device_id extraction by framework
+        entity_id = f"button.{device_config.identifier}.output_{output_tag}"
         entity_name = f"{device_config.name} Output: {output_name}"
 
         super().__init__(

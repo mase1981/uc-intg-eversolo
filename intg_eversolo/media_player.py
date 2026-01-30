@@ -40,6 +40,7 @@ class EversoloMediaPlayer(MediaPlayer):
             device_config.name,
             [
                 Features.ON_OFF,
+                Features.TOGGLE,
                 Features.VOLUME,
                 Features.VOLUME_UP_DOWN,
                 Features.MUTE_TOGGLE,
@@ -129,8 +130,20 @@ class EversoloMediaPlayer(MediaPlayer):
         _LOG.info("[%s] Command: %s %s", self.id, cmd_id, params or "")
 
         try:
-            if cmd_id == Commands.OFF:
+            if cmd_id == Commands.ON:
+                success = await self._device.power_on()
+                return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
+
+            elif cmd_id == Commands.OFF:
                 success = await self._device.power_off()
+                return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
+
+            elif cmd_id == Commands.TOGGLE:
+                # Toggle between on and off
+                if self.attributes.get(Attributes.STATE) == States.OFF:
+                    success = await self._device.power_on()
+                else:
+                    success = await self._device.power_off()
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.VOLUME:

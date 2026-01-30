@@ -40,13 +40,12 @@ class EversoloStateSensor(Sensor, Entity):
         )
 
         # Subscribe to device updates
+        # NOTE: Don't call _on_device_update() here - device may not have data yet.
+        # Initial state will be set when device connects and emits first UPDATE event.
         try:
             self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
         except Exception as err:
             _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
-
-        # Initialize with current device state
-        self._on_device_update()
 
     def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
         """Handle device update events."""
@@ -86,13 +85,12 @@ class EversoloSourceSensor(Sensor, Entity):
         )
 
         # Subscribe to device updates
+        # NOTE: Don't call _on_device_update() here - device may not have data yet.
+        # Initial state will be set when device connects and emits first UPDATE event.
         try:
             self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
         except Exception as err:
             _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
-
-        # Initialize with current device state
-        self._on_device_update()
 
     def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
         """Handle device update events."""
@@ -133,13 +131,12 @@ class EversoloVolumeSensor(Sensor, Entity):
         )
 
         # Subscribe to device updates
+        # NOTE: Don't call _on_device_update() here - device may not have data yet.
+        # Initial state will be set when device connects and emits first UPDATE event.
         try:
             self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
         except Exception as err:
             _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
-
-        # Initialize with current device state
-        self._on_device_update()
 
     def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
         """Handle device update events."""
