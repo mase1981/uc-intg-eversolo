@@ -186,6 +186,12 @@ class EversoloMediaPlayer(MediaPlayer):
                     return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
                 return StatusCodes.BAD_REQUEST
 
+            elif cmd_id == Commands.SELECT_SOUND_MODE:
+                if params and "mode" in params:
+                    success = await self._device.select_output(params["mode"])
+                    return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
+                return StatusCodes.BAD_REQUEST
+
             return StatusCodes.NOT_IMPLEMENTED
 
         except Exception as err:

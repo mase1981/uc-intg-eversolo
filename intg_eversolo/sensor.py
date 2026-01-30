@@ -45,6 +45,9 @@ class EversoloStateSensor(Sensor, Entity):
         except Exception as err:
             _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
 
+        # Initialize with current device state
+        self._on_device_update()
+
     def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
         """Handle device update events."""
         state = self._device.get_state()
@@ -87,6 +90,9 @@ class EversoloSourceSensor(Sensor, Entity):
             self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
         except Exception as err:
             _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
+
+        # Initialize with current device state
+        self._on_device_update()
 
     def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
         """Handle device update events."""
@@ -131,6 +137,9 @@ class EversoloVolumeSensor(Sensor, Entity):
             self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
         except Exception as err:
             _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
+
+        # Initialize with current device state
+        self._on_device_update()
 
     def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
         """Handle device update events."""

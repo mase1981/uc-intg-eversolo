@@ -98,7 +98,7 @@ class EversoloDevice(PollingDevice):
 
             # First connection might take longer - use generous timeout
             music_state = await self._api_request(
-                "/MusicControl/v2/getState", timeout=15.0
+                "/ZidooMusicControl/v2/getState", timeout=15.0
             )
 
             if music_state:
@@ -156,9 +156,9 @@ class EversoloDevice(PollingDevice):
         _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, self.poll_interval)
         try:
             # Use longer timeout for polling - Eversolo devices are very slow
-            music_state = await self._api_request("/MusicControl/v2/getState", timeout=30.0)
+            music_state = await self._api_request("/ZidooMusicControl/v2/getState", timeout=30.0)
             input_output_state = await self._api_request(
-                "/MusicControl/v2/getInputAndOutputList", timeout=30.0
+                "/ZidooMusicControl/v2/getInputAndOutputList", timeout=30.0
             )
 
             self._state_data["music_control_state"] = music_state
@@ -363,7 +363,7 @@ class EversoloDevice(PollingDevice):
         """Power off the device."""
         try:
             await self._api_request(
-                "/MusicControl/v2/setPowerOption?tag=poweroff",
+                "/ZidooMusicControl/v2/setPowerOption?tag=poweroff",
                 parse_json=False,
             )
             return True
@@ -380,7 +380,7 @@ class EversoloDevice(PollingDevice):
 
         try:
             await self._api_request(
-                f"/MusicControl/v2/setDevicesVolume?volume={device_volume}",
+                f"/ZidooMusicControl/v2/setDevicesVolume?volume={device_volume}",
                 parse_json=False,
             )
             return True
@@ -416,7 +416,7 @@ class EversoloDevice(PollingDevice):
         """Mute audio."""
         try:
             await self._api_request(
-                "/MusicControl/v2/setMuteVolume?isMute=1", parse_json=False
+                "/ZidooMusicControl/v2/setMuteVolume?isMute=1", parse_json=False
             )
             return True
         except Exception as err:
@@ -427,7 +427,7 @@ class EversoloDevice(PollingDevice):
         """Unmute audio."""
         try:
             await self._api_request(
-                "/MusicControl/v2/setMuteVolume?isMute=0", parse_json=False
+                "/ZidooMusicControl/v2/setMuteVolume?isMute=0", parse_json=False
             )
             return True
         except Exception as err:
@@ -438,7 +438,7 @@ class EversoloDevice(PollingDevice):
         """Toggle play/pause."""
         try:
             await self._api_request(
-                "/MusicControl/v2/playOrPause", parse_json=False
+                "/ZidooMusicControl/v2/playOrPause", parse_json=False
             )
             return True
         except Exception as err:
@@ -449,7 +449,7 @@ class EversoloDevice(PollingDevice):
         """Skip to next track."""
         try:
             await self._api_request(
-                "/MusicControl/v2/playNext", parse_json=False
+                "/ZidooMusicControl/v2/playNext", parse_json=False
             )
             return True
         except Exception as err:
@@ -460,7 +460,7 @@ class EversoloDevice(PollingDevice):
         """Skip to previous track."""
         try:
             await self._api_request(
-                "/MusicControl/v2/playLast", parse_json=False
+                "/ZidooMusicControl/v2/playLast", parse_json=False
             )
             return True
         except Exception as err:
@@ -472,7 +472,7 @@ class EversoloDevice(PollingDevice):
         position_ms = int(position * 1000)
         try:
             await self._api_request(
-                f"/MusicControl/v2/seekTo?time={position_ms}",
+                f"/ZidooMusicControl/v2/seekTo?time={position_ms}",
                 parse_json=False,
             )
             return True
@@ -490,7 +490,7 @@ class EversoloDevice(PollingDevice):
         try:
             index = list(self._sources.keys()).index(tag)
             await self._api_request(
-                f"/MusicControl/v2/setInputList?tag={tag}&index={index}",
+                f"/ZidooMusicControl/v2/setInputList?tag={tag}&index={index}",
                 parse_json=False,
             )
             return True
@@ -508,7 +508,7 @@ class EversoloDevice(PollingDevice):
         try:
             index = list(self._outputs.keys()).index(tag)
             await self._api_request(
-                f"/MusicControl/v2/setOutInputList?tag={tag}&index={index}",
+                f"/ZidooMusicControl/v2/setOutInputList?tag={tag}&index={index}",
                 parse_json=False,
             )
             return True
