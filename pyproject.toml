@@ -10,7 +10,8 @@ requires-python = ">=3.11"
 license = {text = "MPL-2.0"}
 
 dependencies = [
-    "ucapi-framework>=1.6.0",
+    "ucapi-framework>=1.8.2",
+    "ucapi>=0.5.2",
     "aiohttp>=3.9.0",
 ]
 
