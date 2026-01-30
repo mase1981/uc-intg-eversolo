@@ -54,6 +54,8 @@ class EversoloMediaPlayer(MediaPlayer):
                 Features.MEDIA_ALBUM,
                 Features.MEDIA_DURATION,
                 Features.MEDIA_POSITION,
+                Features.MEDIA_IMAGE_URL,
+                Features.MEDIA_TYPE,
                 Features.SELECT_SOURCE,
             ],
             {
@@ -62,6 +64,8 @@ class EversoloMediaPlayer(MediaPlayer):
                 Attributes.MUTED: False,
                 Attributes.SOURCE: "",
                 Attributes.SOURCE_LIST: [],
+                Attributes.MEDIA_IMAGE_URL: "",
+                Attributes.MEDIA_TYPE: "",
             },
             device_class=DeviceClasses.STREAMING_BOX,
             cmd_handler=self.handle_command,
@@ -99,17 +103,24 @@ class EversoloMediaPlayer(MediaPlayer):
                 self._device.sources.values()
             )
 
+        # Media information - ALWAYS update to clear stale data
         media_info = self._device.get_media_info()
-        if media_info["title"]:
-            self.attributes[Attributes.MEDIA_TITLE] = media_info["title"]
-        if media_info["artist"]:
-            self.attributes[Attributes.MEDIA_ARTIST] = media_info["artist"]
-        if media_info["album"]:
-            self.attributes[Attributes.MEDIA_ALBUM] = media_info["album"]
-        if media_info["duration"]:
-            self.attributes[Attributes.MEDIA_DURATION] = int(media_info["duration"])
-        if media_info["position"]:
-            self.attributes[Attributes.MEDIA_POSITION] = int(media_info["position"])
+
+        # For media attributes, always set them (even if None/empty)
+        # This ensures stale data is cleared when playback stops
+        self.attributes[Attributes.MEDIA_TITLE] = media_info["title"] or ""
+        self.attributes[Attributes.MEDIA_ARTIST] = media_info["artist"] or ""
+        self.attributes[Attributes.MEDIA_ALBUM] = media_info["album"] or ""
+        self.attributes[Attributes.MEDIA_IMAGE_URL] = media_info["image_url"] or ""
+        self.attributes[Attributes.MEDIA_TYPE] = media_info["media_type"] or ""
+
+        # Duration and position - use 0 as default instead of None
+        self.attributes[Attributes.MEDIA_DURATION] = (
+            int(media_info["duration"]) if media_info["duration"] else 0
+        )
+        self.attributes[Attributes.MEDIA_POSITION] = (
+            int(media_info["position"]) if media_info["position"] else 0
+        )
 
     async def handle_command(
         self, entity: MediaPlayer, cmd_id: str, params: dict[str, Any] | None

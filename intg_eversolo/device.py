@@ -257,7 +257,7 @@ class EversoloDevice(PollingDevice):
         return None
 
     def get_media_info(self) -> dict[str, Any]:
-        """Get current media information."""
+        """Get current media information with comprehensive field extraction."""
         music_state = self._state_data.get("music_control_state", {})
         play_type = music_state.get("playType", None)
 
@@ -266,10 +266,12 @@ class EversoloDevice(PollingDevice):
             "artist": None,
             "album": None,
             "image_url": None,
+            "media_type": None,
             "duration": None,
             "position": None,
         }
 
+        # playType 4 or 6: Local/Network playback
         if play_type in [4, 6]:
             audio_info = (
                 music_state.get("everSoloPlayInfo", {})
@@ -278,19 +280,77 @@ class EversoloDevice(PollingDevice):
             info["title"] = audio_info.get("songName")
             info["artist"] = audio_info.get("artistName")
             info["album"] = audio_info.get("albumName")
+            # Try multiple image field names
+            info["image_url"] = (
+                audio_info.get("albumArt") or
+                audio_info.get("artwork") or
+                audio_info.get("coverArt") or
+                audio_info.get("image") or
+                audio_info.get("thumb")
+            )
+            info["media_type"] = "MUSIC"
 
+        # playType 5: Streaming services
         elif play_type == 5:
             playing_music = music_state.get("playingMusic", {})
             info["title"] = playing_music.get("title")
             info["artist"] = playing_music.get("artist")
             info["album"] = playing_music.get("album")
+            # Try multiple image field names
+            info["image_url"] = (
+                playing_music.get("albumArt") or
+                playing_music.get("artwork") or
+                playing_music.get("image") or
+                playing_music.get("thumb") or
+                playing_music.get("coverUrl")
+            )
+            info["media_type"] = "MUSIC"
 
+        # Unknown playType: Fallback extraction
+        else:
+            if play_type is not None:
+                _LOG.debug(
+                    "[%s] Unsupported playType: %s, attempting fallback extraction",
+                    self.log_id, play_type
+                )
+
+            audio_info = (
+                music_state.get("everSoloPlayInfo", {})
+                .get("everSoloPlayAudioInfo", {})
+            )
+            playing_music = music_state.get("playingMusic", {})
+
+            # Prefer playingMusic if available, otherwise use audio_info
+            info["title"] = (
+                playing_music.get("title") or
+                audio_info.get("songName")
+            )
+            info["artist"] = (
+                playing_music.get("artist") or
+                audio_info.get("artistName")
+            )
+            info["album"] = (
+                playing_music.get("album") or
+                audio_info.get("albumName")
+            )
+
+            # Try image from both structures
+            info["image_url"] = (
+                playing_music.get("albumArt") or
+                playing_music.get("artwork") or
+                audio_info.get("albumArt") or
+                audio_info.get("artwork")
+            )
+
+            info["media_type"] = "MUSIC"  # Default assumption
+
+        # Extract duration and position (common to all playTypes)
         duration = music_state.get("duration", 0)
         if duration > 0:
-            info["duration"] = duration / 1000
+            info["duration"] = duration / 1000  # Convert ms to seconds
 
         position = music_state.get("position", 0)
-        if position > 0:
+        if position >= 0:  # Position can be 0, so check >= not >
             info["position"] = position / 1000
 
         return info
