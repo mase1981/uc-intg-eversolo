@@ -125,23 +125,27 @@ class EversoloRemote(Remote):
         try:
             # Playback commands
             if cmd_id == "PLAY":
-                success = await self._device.play()
+                success = await self._device.play_pause()
             elif cmd_id == "PAUSE":
-                success = await self._device.pause()
+                success = await self._device.play_pause()
             elif cmd_id == "STOP":
-                success = await self._device.stop()
+                success = await self._device.play_pause()
             elif cmd_id == "NEXT":
                 success = await self._device.next_track()
             elif cmd_id == "PREVIOUS":
                 success = await self._device.previous_track()
             elif cmd_id == "SHUFFLE":
-                success = await self._device.toggle_shuffle()
+                _LOG.warning("[%s] SHUFFLE not supported by device", self.id)
+                return StatusCodes.NOT_IMPLEMENTED
             elif cmd_id == "REPEAT":
-                success = await self._device.toggle_repeat()
+                _LOG.warning("[%s] REPEAT not supported by device", self.id)
+                return StatusCodes.NOT_IMPLEMENTED
             elif cmd_id == "REWIND":
-                success = await self._device.seek_backward()
+                _LOG.warning("[%s] REWIND not supported by device", self.id)
+                return StatusCodes.NOT_IMPLEMENTED
             elif cmd_id == "FAST_FORWARD":
-                success = await self._device.seek_forward()
+                _LOG.warning("[%s] FAST_FORWARD not supported by device", self.id)
+                return StatusCodes.NOT_IMPLEMENTED
 
             # Volume commands
             elif cmd_id == "VOLUME_UP":
@@ -149,9 +153,11 @@ class EversoloRemote(Remote):
             elif cmd_id == "VOLUME_DOWN":
                 success = await self._device.volume_down()
             elif cmd_id == "VOLUME_UP_10":
-                success = await self._device.volume_up(10)
+                current = self._device.get_volume() or 0
+                success = await self._device.set_volume(min(100, current + 10))
             elif cmd_id == "VOLUME_DOWN_10":
-                success = await self._device.volume_down(10)
+                current = self._device.get_volume() or 0
+                success = await self._device.set_volume(max(0, current - 10))
             elif cmd_id == "MUTE":
                 success = await self._device.mute()
             elif cmd_id == "UNMUTE":

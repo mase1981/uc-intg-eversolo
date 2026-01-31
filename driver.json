@@ -1,6 +1,6 @@
 {
   "driver_id": "eversolo",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "min_core_api": "0.22.0",
   "name": {
     "en": "Eversolo"
