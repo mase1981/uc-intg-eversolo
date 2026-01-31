@@ -31,6 +31,7 @@ class EversoloDevice(PollingDevice):
         self._source_tags: dict[str, str] = {}
         self._outputs: dict[str, str] = {}
         self._output_tags: dict[str, str] = {}
+        self._model_info: dict[str, Any] = {}
 
     @property
     def identifier(self) -> str:
@@ -62,6 +63,16 @@ class EversoloDevice(PollingDevice):
     def outputs(self) -> dict[str, str]:
         """Available outputs {tag: name}."""
         return self._outputs
+
+    @property
+    def model_info(self) -> dict[str, Any]:
+        """Device model information."""
+        return self._model_info
+
+    @property
+    def model_name(self) -> str | None:
+        """Get device model name (e.g., 'DMP-A10')."""
+        return self._model_info.get("model")
 
     async def _create_session(self) -> None:
         """Create HTTP session with proper timeout and connector configuration."""
@@ -151,6 +162,13 @@ class EversoloDevice(PollingDevice):
         """Poll device for current state - fetches ALL device data like HA integration."""
         _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, 20)
         try:
+            # Fetch device model info on first poll
+            if not self._model_info:
+                model_info = await self.get_device_model()
+                if model_info:
+                    self._model_info = model_info
+                    _LOG.info("[%s] Device model detected: %s", self.log_id, self.model_name or "Unknown")
+
             # Fetch core state data (matches HA integration's async_get_data)
             music_state = await self._api_request("/ZidooMusicControl/v2/getState", timeout=30.0)
             input_output_state = await self._api_request(
