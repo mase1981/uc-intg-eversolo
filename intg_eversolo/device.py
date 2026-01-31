@@ -164,6 +164,15 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
                 self._parse_outputs(input_output_state)
 
+            # Fetch brightness data for light entities (matches HA integration)
+            display_brightness = await self.get_display_brightness()
+            knob_brightness = await self.get_knob_brightness()
+
+            if display_brightness is not None:
+                self._state_data["display_brightness"] = display_brightness
+            if knob_brightness is not None:
+                self._state_data["knob_brightness"] = knob_brightness
+
             # Notify each entity with Panasonic pattern: emit(UPDATE, entity_id, attributes)
             # Framework routes these to specific entities
             _LOG.debug("[%s] >>> Notifying entities of state update", self.log_id)
@@ -256,28 +265,37 @@ class EversoloDevice(PollingDevice):
             }
         self.events.emit(DeviceEvents.UPDATE, volume_sensor_id, volume_sensor_attrs)
 
-        # Light: Display Brightness - always ON when connected
+        # Light: Display Brightness - convert from 0-115 to 0-255 scale
         display_light_id = f"light.{self.identifier}.display_brightness"
+        display_brightness_115 = self._state_data.get("display_brightness", 0)
+        display_brightness_255 = int((display_brightness_115 / 115) * 255) if display_brightness_115 > 0 else 0
         display_light_attrs = {
-            LightAttributes.STATE: LightStates.ON,
-            LightAttributes.BRIGHTNESS: 0  # Will be updated by commands
+            LightAttributes.STATE: LightStates.ON if display_brightness_255 > 0 else LightStates.OFF,
+            LightAttributes.BRIGHTNESS: display_brightness_255
         }
+        _LOG.info("[%s] Display brightness: %d/115 -> %d/255, state: %s",
+                  self.log_id, display_brightness_115, display_brightness_255, display_light_attrs[LightAttributes.STATE])
         self.events.emit(DeviceEvents.UPDATE, display_light_id, display_light_attrs)
 
-        # Light: Knob Brightness - always ON when connected
+        # Light: Knob Brightness - already in 0-255 scale
         knob_light_id = f"light.{self.identifier}.knob_brightness"
+        knob_brightness = self._state_data.get("knob_brightness", 0)
         knob_light_attrs = {
-            LightAttributes.STATE: LightStates.ON,
-            LightAttributes.BRIGHTNESS: 0  # Will be updated by commands
+            LightAttributes.STATE: LightStates.ON if knob_brightness > 0 else LightStates.OFF,
+            LightAttributes.BRIGHTNESS: knob_brightness
         }
+        _LOG.info("[%s] Knob brightness: %d/255, state: %s",
+                  self.log_id, knob_brightness, knob_light_attrs[LightAttributes.STATE])
         self.events.emit(DeviceEvents.UPDATE, knob_light_id, knob_light_attrs)
 
         # Buttons: Output selection - always AVAILABLE when connected
+        _LOG.info("[%s] Updating button entities. Available outputs: %s", self.log_id, self.outputs)
         for output_tag in self.outputs.keys():
             button_id = f"button.{self.identifier}.output_{output_tag}"
             button_attrs = {
                 ButtonAttributes.STATE: ButtonStates.AVAILABLE
             }
+            _LOG.info("[%s] Emitting button update: %s -> %s", self.log_id, button_id, button_attrs)
             self.events.emit(DeviceEvents.UPDATE, button_id, button_attrs)
 
     def _parse_sources(self, input_output_state: dict) -> None:
