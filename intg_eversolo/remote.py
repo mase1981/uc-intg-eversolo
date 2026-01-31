@@ -117,6 +117,11 @@ class EversoloRemote(Remote):
         """Handle remote commands."""
         _LOG.info("[%s] Command: %s %s", self.id, cmd_id, params or "")
 
+        # Extract actual command from send_cmd params
+        if cmd_id == "send_cmd" and params and "command" in params:
+            cmd_id = params["command"]
+            _LOG.debug("[%s] Extracted command: %s", self.id, cmd_id)
+
         try:
             # Playback commands
             if cmd_id == "PLAY":
