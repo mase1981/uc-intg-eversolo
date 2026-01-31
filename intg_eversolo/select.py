@@ -32,7 +32,7 @@ class EversoloVUModeSelect(Select):
             f"{device_config.name} VU Mode",
             {
                 Attributes.STATE: States.UNAVAILABLE,
-                Attributes.VALUE: "",
+                Attributes.CURRENT_OPTION: "",
                 Attributes.OPTIONS: [],
             },
             cmd_handler=self.handle_command,
@@ -68,7 +68,7 @@ class EversoloVUModeSelect(Select):
                         index = options.index(option)
                         success = await self._device.set_vu_mode(index)
                         if success:
-                            self.attributes[Attributes.VALUE] = option
+                            self.attributes[Attributes.CURRENT_OPTION] = option
                         return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
                     return StatusCodes.BAD_REQUEST
                 return StatusCodes.BAD_REQUEST
@@ -95,7 +95,7 @@ class EversoloSpectrumModeSelect(Select):
             f"{device_config.name} Spectrum Mode",
             {
                 Attributes.STATE: States.UNAVAILABLE,
-                Attributes.VALUE: "",
+                Attributes.CURRENT_OPTION: "",
                 Attributes.OPTIONS: [],
             },
             cmd_handler=self.handle_command,
@@ -131,7 +131,7 @@ class EversoloSpectrumModeSelect(Select):
                         index = options.index(option)
                         success = await self._device.set_spectrum_mode(index)
                         if success:
-                            self.attributes[Attributes.VALUE] = option
+                            self.attributes[Attributes.CURRENT_OPTION] = option
                         return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
                     return StatusCodes.BAD_REQUEST
                 return StatusCodes.BAD_REQUEST
