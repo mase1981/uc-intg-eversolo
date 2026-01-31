@@ -57,6 +57,7 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
             "usb": "USB DAC",
             "spdif": "OPT/COAX",
             "xlrrca": "XLR/RCA",
+            "iis": "IIS",
         }
 
         buttons = []
