@@ -288,15 +288,23 @@ class EversoloDevice(PollingDevice):
                   self.log_id, knob_brightness)
         self.events.emit(DeviceEvents.UPDATE, knob_light_id, knob_light_attrs)
 
-        # Sensor: Active Output - shows currently selected output
-        active_output_id = f"sensor.{self.identifier}.active_output"
+        # Sensor: Output - shows currently selected output
+        output_sensor_id = f"sensor.{self.identifier}.output"
         current_output = self.get_current_output()
-        active_output_attrs = {
+        output_sensor_attrs = {
             SensorAttributes.STATE: SensorStates.ON if current_output else SensorStates.UNAVAILABLE,
             SensorAttributes.VALUE: current_output if current_output else "Unknown"
         }
-        _LOG.info("[%s] Active output: %s", self.log_id, current_output or "Unknown")
-        self.events.emit(DeviceEvents.UPDATE, active_output_id, active_output_attrs)
+        _LOG.info("[%s] Current output: %s", self.log_id, current_output or "Unknown")
+        self.events.emit(DeviceEvents.UPDATE, output_sensor_id, output_sensor_attrs)
+
+        # Remote: Always AVAILABLE when device is connected
+        from ucapi.remote import Attributes as RemoteAttributes
+        remote_id = f"remote.{self.identifier}"
+        remote_attrs = {
+            RemoteAttributes.STATE: "AVAILABLE"
+        }
+        self.events.emit(DeviceEvents.UPDATE, remote_id, remote_attrs)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""
