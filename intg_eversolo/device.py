@@ -49,11 +49,6 @@ class EversoloDevice(PollingDevice):
         return f"{self.name} ({self.address}:{self._device_config.port})"
 
     @property
-    def poll_interval(self) -> float:
-        """Polling interval in seconds - Eversolo devices are VERY slow, use 20s to prevent overwhelming device."""
-        return 20.0
-
-    @property
     def state_data(self) -> dict[str, Any]:
         """Current device state data."""
         return self._state_data
@@ -107,6 +102,11 @@ class EversoloDevice(PollingDevice):
         if not self._device_config.mac_address:
             await self._fetch_and_store_mac_address(music_state)
 
+        # CRITICAL: Poll immediately after connection to populate state and make entities available
+        # Without this, entities stay UNAVAILABLE for poll_interval seconds (20s)
+        _LOG.info("[%s] Performing initial device poll", self.log_id)
+        await self.poll_device()
+
         return self._session
 
     async def close_connection(self) -> None:
@@ -148,10 +148,10 @@ class EversoloDevice(PollingDevice):
             raise
 
     async def poll_device(self) -> None:
-        """Poll device for current state."""
-        _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, self.poll_interval)
+        """Poll device for current state - fetches ALL device data like HA integration."""
+        _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, 20)
         try:
-            # Use longer timeout for polling - Eversolo devices are very slow
+            # Fetch core state data (matches HA integration's async_get_data)
             music_state = await self._api_request("/ZidooMusicControl/v2/getState", timeout=30.0)
             input_output_state = await self._api_request(
                 "/ZidooMusicControl/v2/getInputAndOutputList", timeout=30.0
@@ -169,7 +169,7 @@ class EversoloDevice(PollingDevice):
             _LOG.debug("[%s] >>> Poll completed successfully", self.log_id)
 
         except Exception as err:
-            _LOG.debug("[%s] Poll error: %s", self.log_id, err, exc_info=True)
+            _LOG.error("[%s] Poll error: %s", self.log_id, err, exc_info=True)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""
