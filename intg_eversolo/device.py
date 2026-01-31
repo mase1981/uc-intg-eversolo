@@ -22,8 +22,8 @@ class EversoloDevice(PollingDevice):
     """Eversolo device implementation using PollingDevice."""
 
     def __init__(self, device_config: EversoloConfig, **kwargs):
-        # Eversolo devices are slow to respond - use 5 second poll interval
-        super().__init__(device_config, poll_interval=5, **kwargs)
+        # Eversolo devices are VERY slow to respond - use 20 second poll interval to prevent overwhelming device
+        super().__init__(device_config, poll_interval=20, **kwargs)
         self._device_config = device_config
         self._session: aiohttp.ClientSession | None = None
         self._state_data: dict[str, Any] = {}
@@ -50,8 +50,8 @@ class EversoloDevice(PollingDevice):
 
     @property
     def poll_interval(self) -> float:
-        """Polling interval in seconds - Eversolo devices are slow, use 5s."""
-        return 5.0
+        """Polling interval in seconds - Eversolo devices are VERY slow, use 20s to prevent overwhelming device."""
+        return 20.0
 
     @property
     def state_data(self) -> dict[str, Any]:
