@@ -187,7 +187,6 @@ class EversoloDevice(PollingDevice):
         from ucapi.media_player import Attributes as MediaAttributes, States as MediaStates
         from ucapi.sensor import Attributes as SensorAttributes, States as SensorStates
         from ucapi.light import Attributes as LightAttributes, States as LightStates
-        from ucapi.button import Attributes as ButtonAttributes, States as ButtonStates
 
         # Media Player Entity
         media_player_id = f"media_player.{self.identifier}"
@@ -289,16 +288,15 @@ class EversoloDevice(PollingDevice):
                   self.log_id, knob_brightness)
         self.events.emit(DeviceEvents.UPDATE, knob_light_id, knob_light_attrs)
 
-        # Buttons: Output selection - always AVAILABLE when connected
-        _LOG.info("[%s] Updating button entities. Available outputs: %s", self.log_id, self.outputs)
-        for output_tag in self.outputs.keys():
-            # Convert to lowercase to match entity IDs created in driver.py
-            button_id = f"button.{self.identifier}.output_{output_tag.lower()}"
-            button_attrs = {
-                ButtonAttributes.STATE: ButtonStates.AVAILABLE
-            }
-            _LOG.info("[%s] Emitting button update: %s -> %s", self.log_id, button_id, button_attrs)
-            self.events.emit(DeviceEvents.UPDATE, button_id, button_attrs)
+        # Sensor: Active Output - shows currently selected output
+        active_output_id = f"sensor.{self.identifier}.active_output"
+        current_output = self.get_current_output()
+        active_output_attrs = {
+            SensorAttributes.STATE: SensorStates.ON if current_output else SensorStates.UNAVAILABLE,
+            SensorAttributes.VALUE: current_output if current_output else "Unknown"
+        }
+        _LOG.info("[%s] Active output: %s", self.log_id, current_output or "Unknown")
+        self.events.emit(DeviceEvents.UPDATE, active_output_id, active_output_attrs)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""
@@ -640,6 +638,31 @@ class EversoloDevice(PollingDevice):
             return True
         except Exception as err:
             _LOG.error("[%s] Select output failed: %s", self.log_id, err)
+            return False
+
+    async def select_output_by_tag(self, tag: str) -> bool:
+        """Select output by tag directly (for remote commands)."""
+        # Find matching output (case-insensitive)
+        matched_tag = None
+        for output_tag in self._outputs.keys():
+            if output_tag.upper() == tag.upper():
+                matched_tag = output_tag
+                break
+
+        if not matched_tag:
+            _LOG.warning("[%s] Output tag '%s' not available (available: %s)",
+                        self.log_id, tag, list(self._outputs.keys()))
+            return False
+
+        try:
+            index = list(self._outputs.keys()).index(matched_tag)
+            await self._api_request(
+                f"/ZidooMusicControl/v2/setOutInputList?tag={matched_tag}&index={index}",
+                parse_json=False,
+            )
+            return True
+        except Exception as err:
+            _LOG.error("[%s] Select output by tag failed: %s", self.log_id, err)
             return False
     async def _fetch_and_store_mac_address(self, music_state: dict | None = None) -> None:
         """

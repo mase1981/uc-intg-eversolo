@@ -82,3 +82,25 @@ class EversoloVolumeSensor(Sensor, Entity):
             },
             device_class=None,
         )
+
+
+class EversoloActiveOutputSensor(Sensor, Entity):
+    """Eversolo active output sensor."""
+
+    def __init__(self, device_config: EversoloConfig, device: EversoloDevice):
+        """Initialize sensor."""
+        self._device = device
+        self._device_config = device_config
+
+        entity_id = f"sensor.{device_config.identifier}.active_output"
+
+        super().__init__(
+            entity_id,
+            f"{device_config.name} Active Output",
+            [],  # features - no specific features needed
+            {
+                Attributes.STATE: States.UNAVAILABLE,
+                Attributes.VALUE: "Unknown",
+            },
+            device_class=None,
+        )

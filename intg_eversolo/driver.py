@@ -13,8 +13,9 @@ from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
 from intg_eversolo.light import EversoloDisplayBrightnessLight, EversoloKnobBrightnessLight
 from intg_eversolo.media_player import EversoloMediaPlayer
-from intg_eversolo.output_buttons import EversoloOutputButton
+from intg_eversolo.remote import EversoloRemote
 from intg_eversolo.sensor import (
+    EversoloActiveOutputSensor,
     EversoloSourceSensor,
     EversoloStateSensor,
     EversoloVolumeSensor,
@@ -31,38 +32,17 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
             device_class=EversoloDevice,
             entity_classes=[
                 EversoloMediaPlayer,
+                EversoloRemote,
                 lambda cfg, dev: [
                     EversoloStateSensor(cfg, dev),
                     EversoloSourceSensor(cfg, dev),
                     EversoloVolumeSensor(cfg, dev),
+                    EversoloActiveOutputSensor(cfg, dev),
                 ],
                 lambda cfg, dev: [
                     EversoloDisplayBrightnessLight(cfg, dev),
                     EversoloKnobBrightnessLight(cfg, dev),
                 ],
-                self._create_output_buttons,
             ],
             driver_id="eversolo",
         )
-
-    def _create_output_buttons(self, cfg: EversoloConfig, dev: EversoloDevice):
-        """Create button entities for all possible Eversolo outputs."""
-        # Common Eversolo outputs with tags and user-friendly display names
-        # Tags match API format, names are for UI display
-        # Flexible matching will handle device-specific variations like "Analog-RCA" vs "RCA"
-        all_outputs = {
-            "rca": "RCA",
-            "xlr": "XLR",
-            "hdmi": "HDMI",
-            "usb": "USB DAC",
-            "spdif": "OPT/COAX",
-            "xlrrca": "XLR/RCA",
-            "iis": "IIS",
-        }
-
-        buttons = []
-        for tag, name in all_outputs.items():
-            buttons.append(EversoloOutputButton(cfg, dev, tag, name))
-
-        _LOG.info("Created %d output button entities for %s", len(buttons), cfg.name)
-        return buttons
