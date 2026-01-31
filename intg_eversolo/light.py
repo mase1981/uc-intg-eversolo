@@ -10,6 +10,7 @@ from typing import Any
 
 from ucapi import StatusCodes
 from ucapi.light import Attributes, Commands, Features, Light, States
+from ucapi_framework import DeviceEvents
 
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
@@ -37,6 +38,15 @@ class EversoloDisplayBrightnessLight(Light):
             },
             cmd_handler=self.handle_command,
         )
+
+        # Subscribe to device UPDATE events
+        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
+
+    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
+        """Handle device update events."""
+        # Light entities are always ON (available) when device is connected
+        self.attributes[Attributes.STATE] = States.ON
+        # Brightness will be updated when commands are executed
 
     async def handle_command(
         self, entity: Light, cmd_id: str, params: dict[str, Any] | None
@@ -98,6 +108,15 @@ class EversoloKnobBrightnessLight(Light):
             },
             cmd_handler=self.handle_command,
         )
+
+        # Subscribe to device UPDATE events
+        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
+
+    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
+        """Handle device update events."""
+        # Light entities are always ON (available) when device is connected
+        self.attributes[Attributes.STATE] = States.ON
+        # Brightness will be updated when commands are executed
 
     async def handle_command(
         self, entity: Light, cmd_id: str, params: dict[str, Any] | None
