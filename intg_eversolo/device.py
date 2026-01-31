@@ -721,8 +721,8 @@ class EversoloDevice(PollingDevice):
             result = await self._api_request(
                 "/SystemSettings/displaySettings/getScreenBrightness"
             )
-            if result and "currentIndex" in result:
-                return result["currentIndex"]
+            if result and "currentValue" in result:
+                return result["currentValue"]
             return None
         except Exception as err:
             _LOG.error("[%s] Get display brightness failed: %s", self.log_id, err)
@@ -749,8 +749,8 @@ class EversoloDevice(PollingDevice):
             result = await self._api_request(
                 "/SystemSettings/displaySettings/getKnobBrightness"
             )
-            if result and "currentIndex" in result:
-                return result["currentIndex"]
+            if result and "currentValue" in result:
+                return result["currentValue"]
             return None
         except Exception as err:
             _LOG.error("[%s] Get knob brightness failed: %s", self.log_id, err)
