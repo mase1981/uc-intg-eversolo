@@ -269,29 +269,31 @@ class EversoloDevice(PollingDevice):
         display_light_id = f"light.{self.identifier}.display_brightness"
         display_brightness_115 = self._state_data.get("display_brightness", 0)
         display_brightness_255 = int((display_brightness_115 / 115) * 255) if display_brightness_115 > 0 else 0
+        # Only send brightness - let framework derive state
+        # Framework doesn't accept OFF state for dimmable lights
         display_light_attrs = {
-            LightAttributes.STATE: LightStates.ON if display_brightness_255 > 0 else LightStates.OFF,
             LightAttributes.BRIGHTNESS: display_brightness_255
         }
-        _LOG.info("[%s] Display brightness: %d/115 -> %d/255, state: %s",
-                  self.log_id, display_brightness_115, display_brightness_255, display_light_attrs[LightAttributes.STATE])
+        _LOG.info("[%s] Display brightness: %d/115 -> %d/255",
+                  self.log_id, display_brightness_115, display_brightness_255)
         self.events.emit(DeviceEvents.UPDATE, display_light_id, display_light_attrs)
 
         # Light: Knob Brightness - already in 0-255 scale
         knob_light_id = f"light.{self.identifier}.knob_brightness"
         knob_brightness = self._state_data.get("knob_brightness", 0)
+        # Only send brightness - let framework derive state
         knob_light_attrs = {
-            LightAttributes.STATE: LightStates.ON if knob_brightness > 0 else LightStates.OFF,
             LightAttributes.BRIGHTNESS: knob_brightness
         }
-        _LOG.info("[%s] Knob brightness: %d/255, state: %s",
-                  self.log_id, knob_brightness, knob_light_attrs[LightAttributes.STATE])
+        _LOG.info("[%s] Knob brightness: %d/255",
+                  self.log_id, knob_brightness)
         self.events.emit(DeviceEvents.UPDATE, knob_light_id, knob_light_attrs)
 
         # Buttons: Output selection - always AVAILABLE when connected
         _LOG.info("[%s] Updating button entities. Available outputs: %s", self.log_id, self.outputs)
         for output_tag in self.outputs.keys():
-            button_id = f"button.{self.identifier}.output_{output_tag}"
+            # Convert to lowercase to match entity IDs created in driver.py
+            button_id = f"button.{self.identifier}.output_{output_tag.lower()}"
             button_attrs = {
                 ButtonAttributes.STATE: ButtonStates.AVAILABLE
             }
