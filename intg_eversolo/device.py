@@ -90,34 +90,24 @@ class EversoloDevice(PollingDevice):
                 connector=connector
             )
 
-    async def establish_connection(self) -> bool:
+    async def establish_connection(self) -> aiohttp.ClientSession:
         """Establish connection to device - required by PollingDevice."""
         _LOG.info("[%s] Establishing connection to Eversolo device", self.log_id)
 
-        try:
-            await self._create_session()
+        await self._create_session()
 
-            # First connection might take longer - use generous timeout
-            music_state = await self._api_request(
-                "/ZidooMusicControl/v2/getState", timeout=15.0
-            )
+        # First connection might take longer - use generous timeout
+        music_state = await self._api_request(
+            "/ZidooMusicControl/v2/getState", timeout=15.0
+        )
 
-            if music_state:
-                _LOG.info("[%s] Connection established successfully", self.log_id)
+        _LOG.info("[%s] Connection established successfully", self.log_id)
 
-                # Auto-capture MAC address for WakeOnLAN if not already stored
-                if not self._device_config.mac_address:
-                    await self._fetch_and_store_mac_address(music_state)
+        # Auto-capture MAC address for WakeOnLAN if not already stored
+        if not self._device_config.mac_address:
+            await self._fetch_and_store_mac_address(music_state)
 
-                return True
-
-            _LOG.error("[%s] Failed to establish connection - no response", self.log_id)
-            return False
-
-        except Exception as err:
-            _LOG.error("[%s] Connection failed: %s", self.log_id, err)
-            await self.close_connection()
-            return False
+        return self._session
 
     async def close_connection(self) -> None:
         """Close connection - required by PollingDevice."""
