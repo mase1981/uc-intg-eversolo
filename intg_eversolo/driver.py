@@ -11,7 +11,6 @@ from ucapi_framework import BaseIntegrationDriver
 
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
-from intg_eversolo.light import EversoloDisplayBrightnessLight, EversoloKnobBrightnessLight
 from intg_eversolo.media_player import EversoloMediaPlayer
 from intg_eversolo.remote import EversoloRemote
 from intg_eversolo.sensor import (
@@ -38,10 +37,6 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
                     EversoloSourceSensor(cfg, dev),
                     EversoloVolumeSensor(cfg, dev),
                     EversoloActiveOutputSensor(cfg, dev),
-                ],
-                lambda cfg, dev: [
-                    EversoloDisplayBrightnessLight(cfg, dev),
-                    EversoloKnobBrightnessLight(cfg, dev),
                 ],
             ],
             driver_id="eversolo",

@@ -164,15 +164,6 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
                 self._parse_outputs(input_output_state)
 
-            # Fetch brightness data for light entities (matches HA integration)
-            display_brightness = await self.get_display_brightness()
-            knob_brightness = await self.get_knob_brightness()
-
-            if display_brightness is not None:
-                self._state_data["display_brightness"] = display_brightness
-            if knob_brightness is not None:
-                self._state_data["knob_brightness"] = knob_brightness
-
             # Notify each entity with Panasonic pattern: emit(UPDATE, entity_id, attributes)
             # Framework routes these to specific entities
             _LOG.debug("[%s] >>> Notifying entities of state update", self.log_id)
@@ -186,7 +177,6 @@ class EversoloDevice(PollingDevice):
         """Notify entities of state changes - Panasonic pattern with entity_id and attributes."""
         from ucapi.media_player import Attributes as MediaAttributes, States as MediaStates
         from ucapi.sensor import Attributes as SensorAttributes, States as SensorStates
-        from ucapi.light import Attributes as LightAttributes, States as LightStates
 
         # Media Player Entity
         media_player_id = f"media_player.{self.identifier}"
@@ -265,29 +255,6 @@ class EversoloDevice(PollingDevice):
         self.events.emit(DeviceEvents.UPDATE, volume_sensor_id, volume_sensor_attrs)
 
         # Light: Display Brightness - convert from 0-115 to 0-255 scale
-        display_light_id = f"light.{self.identifier}.display_brightness"
-        display_brightness_115 = self._state_data.get("display_brightness", 0)
-        display_brightness_255 = int((display_brightness_115 / 115) * 255) if display_brightness_115 > 0 else 0
-        # Only send brightness - let framework derive state
-        # Framework doesn't accept OFF state for dimmable lights
-        display_light_attrs = {
-            LightAttributes.BRIGHTNESS: display_brightness_255
-        }
-        _LOG.info("[%s] Display brightness: %d/115 -> %d/255",
-                  self.log_id, display_brightness_115, display_brightness_255)
-        self.events.emit(DeviceEvents.UPDATE, display_light_id, display_light_attrs)
-
-        # Light: Knob Brightness - already in 0-255 scale
-        knob_light_id = f"light.{self.identifier}.knob_brightness"
-        knob_brightness = self._state_data.get("knob_brightness", 0)
-        # Only send brightness - let framework derive state
-        knob_light_attrs = {
-            LightAttributes.BRIGHTNESS: knob_brightness
-        }
-        _LOG.info("[%s] Knob brightness: %d/255",
-                  self.log_id, knob_brightness)
-        self.events.emit(DeviceEvents.UPDATE, knob_light_id, knob_light_attrs)
-
         # Sensor: Output - shows currently selected output
         output_sensor_id = f"sensor.{self.identifier}.output"
         current_output = self.get_current_output()
@@ -298,11 +265,11 @@ class EversoloDevice(PollingDevice):
         _LOG.info("[%s] Current output: %s", self.log_id, current_output or "Unknown")
         self.events.emit(DeviceEvents.UPDATE, output_sensor_id, output_sensor_attrs)
 
-        # Remote: Always AVAILABLE when device is connected
+        # Remote: Always ON when device is connected
         from ucapi.remote import Attributes as RemoteAttributes
         remote_id = f"remote.{self.identifier}"
         remote_attrs = {
-            RemoteAttributes.STATE: "AVAILABLE"
+            RemoteAttributes.STATE: "ON"
         }
         self.events.emit(DeviceEvents.UPDATE, remote_id, remote_attrs)
 
