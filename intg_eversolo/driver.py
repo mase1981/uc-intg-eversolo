@@ -12,7 +12,8 @@ from ucapi_framework import BaseIntegrationDriver
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
 from intg_eversolo.media_player import EversoloMediaPlayer
-from intg_eversolo.remote import EversoloRemote
+from intg_eversolo.remote_a6 import EversoloRemoteA6
+from intg_eversolo.remote_a10 import EversoloRemoteA10
 from intg_eversolo.sensor import (
     EversoloActiveOutputSensor,
     EversoloSourceSensor,
@@ -31,7 +32,7 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
             device_class=EversoloDevice,
             entity_classes=[
                 EversoloMediaPlayer,
-                EversoloRemote,
+                lambda cfg, dev: EversoloRemoteA6(cfg, dev) if cfg.model == "DMP-A6" else EversoloRemoteA10(cfg, dev),
                 lambda cfg, dev: [
                     EversoloStateSensor(cfg, dev),
                     EversoloSourceSensor(cfg, dev),

@@ -18,6 +18,7 @@ class EversoloConfig:
     name: str
     host: str
     port: int = 9529
+    model: str = "DMP-A6"  # Device model: DMP-A6, DMP-A10, etc.
     mac_address: Optional[str] = field(default=None)
 
     def set_mac_address(self, mac: str) -> None:

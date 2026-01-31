@@ -41,6 +41,25 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
                     "label": {"en": "Port"},
                     "field": {"text": {"value": "9529"}},
                 },
+                {
+                    "id": "model",
+                    "label": {"en": "Device Model"},
+                    "field": {
+                        "dropdown": {
+                            "value": "DMP-A6",
+                            "items": [
+                                {
+                                    "id": "DMP-A6",
+                                    "label": {"en": "DMP-A6 (Music Streamer with HDMI & Knob)"}
+                                },
+                                {
+                                    "id": "DMP-A10",
+                                    "label": {"en": "DMP-A10 (DAC/Preamp - No HDMI/Knob)"}
+                                },
+                            ],
+                        }
+                    },
+                },
             ],
         )
 
@@ -57,6 +76,7 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
 
         port = int(input_values.get("port", 9529))
         name = input_values.get("name", f"Eversolo ({host})").strip()
+        model = input_values.get("model", "DMP-A6")
 
         try:
             test_config = EversoloConfig(
@@ -64,6 +84,7 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
                 name=name,
                 host=host,
                 port=port,
+                model=model,
             )
 
             _LOG.info("Testing connection to %s:%s", host, port)
