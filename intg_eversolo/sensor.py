@@ -9,7 +9,6 @@ import logging
 from typing import Any
 
 from ucapi.sensor import Attributes, DeviceClasses, Sensor, States
-from ucapi_framework import DeviceEvents
 from ucapi_framework.entity import Entity
 
 from intg_eversolo.config import EversoloConfig
@@ -39,29 +38,6 @@ class EversoloStateSensor(Sensor, Entity):
             device_class=None,
         )
 
-        # Subscribe to device updates
-        # NOTE: Don't call _on_device_update() here - device may not have data yet.
-        # Initial state will be set when device connects and emits first UPDATE event.
-        try:
-            self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
-        except Exception as err:
-            _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
-
-    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
-        """Handle device update events."""
-        state = self._device.get_state()
-
-        if state == "UNKNOWN":
-            self.attributes[Attributes.STATE] = States.UNAVAILABLE
-            self.attributes[Attributes.VALUE] = "Unknown"
-        else:
-            self.attributes[Attributes.STATE] = States.ON
-            self.attributes[Attributes.VALUE] = state
-
-        # Notify framework of attribute changes (if API is available)
-        if hasattr(self, "_api"):
-            self.update_attributes(self.attributes)
-
 
 class EversoloSourceSensor(Sensor, Entity):
     """Eversolo current source sensor."""
@@ -83,29 +59,6 @@ class EversoloSourceSensor(Sensor, Entity):
             },
             device_class=None,
         )
-
-        # Subscribe to device updates
-        # NOTE: Don't call _on_device_update() here - device may not have data yet.
-        # Initial state will be set when device connects and emits first UPDATE event.
-        try:
-            self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
-        except Exception as err:
-            _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
-
-    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
-        """Handle device update events."""
-        source = self._device.get_current_source()
-
-        if source:
-            self.attributes[Attributes.STATE] = States.ON
-            self.attributes[Attributes.VALUE] = source
-        else:
-            self.attributes[Attributes.STATE] = States.UNAVAILABLE
-            self.attributes[Attributes.VALUE] = "Unknown"
-
-        # Notify framework of attribute changes (if API is available)
-        if hasattr(self, "_api"):
-            self.update_attributes(self.attributes)
 
 
 class EversoloVolumeSensor(Sensor, Entity):
@@ -129,26 +82,3 @@ class EversoloVolumeSensor(Sensor, Entity):
             },
             device_class=None,
         )
-
-        # Subscribe to device updates
-        # NOTE: Don't call _on_device_update() here - device may not have data yet.
-        # Initial state will be set when device connects and emits first UPDATE event.
-        try:
-            self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
-        except Exception as err:
-            _LOG.warning(f"[{entity_id}] Could not subscribe to device events: {err}")
-
-    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
-        """Handle device update events."""
-        volume = self._device.get_volume()
-
-        if volume is not None:
-            self.attributes[Attributes.STATE] = States.ON
-            self.attributes[Attributes.VALUE] = volume
-        else:
-            self.attributes[Attributes.STATE] = States.UNAVAILABLE
-            self.attributes[Attributes.VALUE] = 0
-
-        # Notify framework of attribute changes (if API is available)
-        if hasattr(self, "_api"):
-            self.update_attributes(self.attributes)

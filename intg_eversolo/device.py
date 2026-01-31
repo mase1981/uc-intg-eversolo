@@ -164,14 +164,121 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
                 self._parse_outputs(input_output_state)
 
-            # Emit UPDATE event without arguments - entities handle it in their _on_device_update callbacks
-            # DO NOT pass keyword arguments like update={}, it causes entity_id error with BaseIntegrationDriver
-            _LOG.debug("[%s] >>> Emitting UPDATE event to entities", self.log_id)
-            self.events.emit(DeviceEvents.UPDATE)
+            # Notify each entity with Panasonic pattern: emit(UPDATE, entity_id, attributes)
+            # Framework routes these to specific entities
+            _LOG.debug("[%s] >>> Notifying entities of state update", self.log_id)
+            self._notify_entities()
             _LOG.debug("[%s] >>> Poll completed successfully", self.log_id)
 
         except Exception as err:
             _LOG.error("[%s] Poll error: %s", self.log_id, err, exc_info=True)
+
+    def _notify_entities(self) -> None:
+        """Notify entities of state changes - Panasonic pattern with entity_id and attributes."""
+        from ucapi.media_player import Attributes as MediaAttributes, States as MediaStates
+        from ucapi.sensor import Attributes as SensorAttributes, States as SensorStates
+        from ucapi.light import Attributes as LightAttributes, States as LightStates
+        from ucapi.button import Attributes as ButtonAttributes, States as ButtonStates
+
+        # Media Player Entity
+        media_player_id = f"media_player.{self.identifier}"
+        volume = self.get_volume()
+        state = self.get_state()
+
+        if state == "IDLE":
+            mp_state = MediaStates.IDLE
+        elif state == "PLAYING":
+            mp_state = MediaStates.PLAYING
+        elif state == "PAUSED":
+            mp_state = MediaStates.PAUSED
+        else:
+            mp_state = MediaStates.STANDBY
+
+        media_info = self.get_media_info()
+        media_player_attrs = {
+            MediaAttributes.STATE: mp_state,
+            MediaAttributes.VOLUME: volume if volume is not None else 0,
+            MediaAttributes.MUTED: self.get_muted(),
+            MediaAttributes.SOURCE: self.get_current_source() or "",
+            MediaAttributes.SOURCE_LIST: list(self.sources.values()) if self.sources else [],
+            MediaAttributes.MEDIA_TITLE: media_info["title"] or "",
+            MediaAttributes.MEDIA_ARTIST: media_info["artist"] or "",
+            MediaAttributes.MEDIA_ALBUM: media_info["album"] or "",
+            MediaAttributes.MEDIA_IMAGE_URL: media_info["image_url"] or "",
+            MediaAttributes.MEDIA_TYPE: media_info["media_type"] or "",
+            MediaAttributes.MEDIA_DURATION: int(media_info["duration"]) if media_info["duration"] else 0,
+            MediaAttributes.MEDIA_POSITION: int(media_info["position"]) if media_info["position"] else 0,
+        }
+        self.events.emit(DeviceEvents.UPDATE, media_player_id, media_player_attrs)
+
+        # Sensor: State
+        state_sensor_id = f"sensor.{self.identifier}.state"
+        if state == "UNKNOWN":
+            state_sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.UNAVAILABLE,
+                SensorAttributes.VALUE: "Unknown"
+            }
+        else:
+            state_sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.ON,
+                SensorAttributes.VALUE: state
+            }
+        self.events.emit(DeviceEvents.UPDATE, state_sensor_id, state_sensor_attrs)
+
+        # Sensor: Source
+        source_sensor_id = f"sensor.{self.identifier}.source"
+        current_source = self.get_current_source()
+        if current_source:
+            source_sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.ON,
+                SensorAttributes.VALUE: current_source
+            }
+        else:
+            source_sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.UNAVAILABLE,
+                SensorAttributes.VALUE: "Unknown"
+            }
+        self.events.emit(DeviceEvents.UPDATE, source_sensor_id, source_sensor_attrs)
+
+        # Sensor: Volume
+        volume_sensor_id = f"sensor.{self.identifier}.volume"
+        if volume is not None:
+            volume_sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.ON,
+                SensorAttributes.VALUE: volume,
+                SensorAttributes.UNIT: "%"
+            }
+        else:
+            volume_sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.UNAVAILABLE,
+                SensorAttributes.VALUE: 0,
+                SensorAttributes.UNIT: "%"
+            }
+        self.events.emit(DeviceEvents.UPDATE, volume_sensor_id, volume_sensor_attrs)
+
+        # Light: Display Brightness - always ON when connected
+        display_light_id = f"light.{self.identifier}.display_brightness"
+        display_light_attrs = {
+            LightAttributes.STATE: LightStates.ON,
+            LightAttributes.BRIGHTNESS: 0  # Will be updated by commands
+        }
+        self.events.emit(DeviceEvents.UPDATE, display_light_id, display_light_attrs)
+
+        # Light: Knob Brightness - always ON when connected
+        knob_light_id = f"light.{self.identifier}.knob_brightness"
+        knob_light_attrs = {
+            LightAttributes.STATE: LightStates.ON,
+            LightAttributes.BRIGHTNESS: 0  # Will be updated by commands
+        }
+        self.events.emit(DeviceEvents.UPDATE, knob_light_id, knob_light_attrs)
+
+        # Buttons: Output selection - always AVAILABLE when connected
+        for output_tag in self.outputs.keys():
+            button_id = f"button.{self.identifier}.output_{output_tag}"
+            button_attrs = {
+                ButtonAttributes.STATE: ButtonStates.AVAILABLE
+            }
+            self.events.emit(DeviceEvents.UPDATE, button_id, button_attrs)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""

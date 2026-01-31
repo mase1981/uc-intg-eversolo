@@ -10,7 +10,6 @@ from typing import Any
 
 from ucapi import StatusCodes
 from ucapi.button import Button, Attributes, States
-from ucapi_framework import DeviceEvents
 
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
@@ -42,15 +41,6 @@ class EversoloOutputButton(Button):
             entity_name,
             cmd_handler=self.handle_command,
         )
-
-        # Subscribe to device UPDATE events
-        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
-
-    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
-        """Handle device update events."""
-        # Button entities are always available when device is connected
-        if Attributes.STATE in self.attributes:
-            self.attributes[Attributes.STATE] = States.AVAILABLE
 
     async def handle_command(
         self, entity: Button, cmd_id: str, params: dict[str, Any] | None

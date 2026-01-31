@@ -17,7 +17,6 @@ from ucapi.media_player import (
     MediaPlayer,
     States,
 )
-from ucapi_framework import DeviceEvents
 
 from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
@@ -70,57 +69,6 @@ class EversoloMediaPlayer(MediaPlayer):
             },
             device_class=DeviceClasses.STREAMING_BOX,
             cmd_handler=self.handle_command,
-        )
-
-        _LOG.debug("[%s] >>> Subscribing to device UPDATE events", entity_id)
-        self._device.events.on(DeviceEvents.UPDATE, self._on_device_update)
-        _LOG.debug("[%s] >>> Successfully subscribed to device UPDATE events", entity_id)
-
-    def _on_device_update(self, update: dict[str, Any] | None = None, **kwargs) -> None:
-        """Handle device update events."""
-        _LOG.debug("[%s] >>> Received UPDATE event from device", self.id)
-        volume = self._device.get_volume()
-        if volume is not None:
-            self.attributes[Attributes.VOLUME] = volume
-
-        self.attributes[Attributes.MUTED] = self._device.get_muted()
-
-        state = self._device.get_state()
-        if state == "IDLE":
-            self.attributes[Attributes.STATE] = States.IDLE
-        elif state == "PLAYING":
-            self.attributes[Attributes.STATE] = States.PLAYING
-        elif state == "PAUSED":
-            self.attributes[Attributes.STATE] = States.PAUSED
-        else:
-            self.attributes[Attributes.STATE] = States.STANDBY
-
-        current_source = self._device.get_current_source()
-        if current_source:
-            self.attributes[Attributes.SOURCE] = current_source
-
-        if self._device.sources:
-            self.attributes[Attributes.SOURCE_LIST] = list(
-                self._device.sources.values()
-            )
-
-        # Media information - ALWAYS update to clear stale data
-        media_info = self._device.get_media_info()
-
-        # For media attributes, always set them (even if None/empty)
-        # This ensures stale data is cleared when playback stops
-        self.attributes[Attributes.MEDIA_TITLE] = media_info["title"] or ""
-        self.attributes[Attributes.MEDIA_ARTIST] = media_info["artist"] or ""
-        self.attributes[Attributes.MEDIA_ALBUM] = media_info["album"] or ""
-        self.attributes[Attributes.MEDIA_IMAGE_URL] = media_info["image_url"] or ""
-        self.attributes[Attributes.MEDIA_TYPE] = media_info["media_type"] or ""
-
-        # Duration and position - use 0 as default instead of None
-        self.attributes[Attributes.MEDIA_DURATION] = (
-            int(media_info["duration"]) if media_info["duration"] else 0
-        )
-        self.attributes[Attributes.MEDIA_POSITION] = (
-            int(media_info["position"]) if media_info["position"] else 0
         )
 
     async def handle_command(
