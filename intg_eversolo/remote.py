@@ -176,9 +176,9 @@ class EversoloRemote(Remote):
                 current = await self._device.get_display_brightness() or 0
                 success = await self._device.set_display_brightness(max(0, current - 10))
             elif cmd_id == "DISPLAY_OFF":
-                success = await self._device.set_display_brightness(0)
+                success = await self._device.turn_screen_off()
             elif cmd_id == "DISPLAY_ON":
-                success = await self._device.set_display_brightness(115)
+                success = await self._device.turn_screen_on()
             elif cmd_id == "KNOB_BRIGHT":
                 current = await self._device.get_knob_brightness() or 0
                 success = await self._device.set_knob_brightness(min(255, current + 20))

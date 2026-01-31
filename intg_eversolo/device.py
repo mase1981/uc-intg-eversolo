@@ -823,7 +823,7 @@ class EversoloDevice(PollingDevice):
         """Turn screen on explicitly."""
         try:
             await self._api_request(
-                "/ControlCenter/RemoteControl/sendkey?key=Key.Screen.ON",
+                "/ZidooControlCenter/RemoteControl/sendkey?key=Key.Screen.ON",
                 parse_json=False,
             )
             return True
@@ -835,7 +835,7 @@ class EversoloDevice(PollingDevice):
         """Turn screen off explicitly."""
         try:
             await self._api_request(
-                "/ControlCenter/RemoteControl/sendkey?key=Key.Screen.OFF",
+                "/ZidooControlCenter/RemoteControl/sendkey?key=Key.Screen.OFF",
                 parse_json=False,
             )
             return True
