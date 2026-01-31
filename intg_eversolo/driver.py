@@ -14,7 +14,6 @@ from intg_eversolo.device import EversoloDevice
 from intg_eversolo.light import EversoloDisplayBrightnessLight, EversoloKnobBrightnessLight
 from intg_eversolo.media_player import EversoloMediaPlayer
 from intg_eversolo.output_buttons import EversoloOutputButton
-from intg_eversolo.select import EversoloSpectrumModeSelect, EversoloVUModeSelect
 from intg_eversolo.sensor import (
     EversoloSourceSensor,
     EversoloStateSensor,
@@ -40,10 +39,6 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
                 lambda cfg, dev: [
                     EversoloDisplayBrightnessLight(cfg, dev),
                     EversoloKnobBrightnessLight(cfg, dev),
-                ],
-                lambda cfg, dev: [
-                    EversoloVUModeSelect(cfg, dev),
-                    EversoloSpectrumModeSelect(cfg, dev),
                 ],
                 self._create_output_buttons,
             ],
