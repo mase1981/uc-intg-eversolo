@@ -164,8 +164,10 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
                 self._parse_outputs(input_output_state)
 
-            _LOG.debug("[%s] >>> Emitting UPDATE event", self.log_id)
-            self.events.emit(DeviceEvents.UPDATE, update={})
+            # Emit UPDATE event without arguments - entities handle it in their _on_device_update callbacks
+            # DO NOT pass keyword arguments like update={}, it causes entity_id error with BaseIntegrationDriver
+            _LOG.debug("[%s] >>> Emitting UPDATE event to entities", self.log_id)
+            self.events.emit(DeviceEvents.UPDATE)
             _LOG.debug("[%s] >>> Poll completed successfully", self.log_id)
 
         except Exception as err:
