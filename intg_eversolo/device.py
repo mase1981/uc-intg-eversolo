@@ -184,7 +184,7 @@ class EversoloDevice(PollingDevice):
         state = self.get_state()
 
         if state == "IDLE":
-            mp_state = MediaStates.IDLE
+            mp_state = MediaStates.ON
         elif state == "PLAYING":
             mp_state = MediaStates.PLAYING
         elif state == "PAUSED":

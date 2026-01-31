@@ -85,15 +85,12 @@ class EversoloRemote(Remote):
             {
                 "page_id": "outputs",
                 "name": "Audio Outputs",
-                "grid": {"width": 3, "height": 3},
+                "grid": {"width": 2, "height": 2},
                 "items": [
                     {"type": "text", "text": "RCA", "command": {"cmd_id": "OUTPUT_RCA"}, "location": {"x": 0, "y": 0}},
                     {"type": "text", "text": "XLR", "command": {"cmd_id": "OUTPUT_XLR"}, "location": {"x": 1, "y": 0}},
-                    {"type": "text", "text": "HDMI", "command": {"cmd_id": "OUTPUT_HDMI"}, "location": {"x": 2, "y": 0}},
-                    {"type": "text", "text": "USB DAC", "command": {"cmd_id": "OUTPUT_USB"}, "location": {"x": 0, "y": 1}},
-                    {"type": "text", "text": "OPT/COAX", "command": {"cmd_id": "OUTPUT_SPDIF"}, "location": {"x": 1, "y": 1}},
-                    {"type": "text", "text": "XLR/RCA", "command": {"cmd_id": "OUTPUT_XLRRCA"}, "location": {"x": 2, "y": 1}},
-                    {"type": "text", "text": "IIS", "command": {"cmd_id": "OUTPUT_IIS"}, "location": {"x": 0, "y": 2}},
+                    {"type": "text", "text": "OPT/COAX", "command": {"cmd_id": "OUTPUT_SPDIF"}, "location": {"x": 0, "y": 1}},
+                    {"type": "text", "text": "XLR/RCA", "command": {"cmd_id": "OUTPUT_XLRRCA"}, "location": {"x": 1, "y": 1}},
                 ],
             },
             {
@@ -168,16 +165,10 @@ class EversoloRemote(Remote):
                 success = await self._device.select_output_by_tag("RCA")
             elif cmd_id == "OUTPUT_XLR":
                 success = await self._device.select_output_by_tag("XLR")
-            elif cmd_id == "OUTPUT_HDMI":
-                success = await self._device.select_output_by_tag("HDMI")
-            elif cmd_id == "OUTPUT_USB":
-                success = await self._device.select_output_by_tag("USB")
             elif cmd_id == "OUTPUT_SPDIF":
                 success = await self._device.select_output_by_tag("SPDIF")
             elif cmd_id == "OUTPUT_XLRRCA":
                 success = await self._device.select_output_by_tag("XLRRCA")
-            elif cmd_id == "OUTPUT_IIS":
-                success = await self._device.select_output_by_tag("IIS")
 
             # Brightness commands
             elif cmd_id == "DISPLAY_BRIGHT":
