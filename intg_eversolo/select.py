@@ -38,8 +38,8 @@ class EversoloVUModeSelect(Select):
             cmd_handler=self.handle_command,
         )
 
-        # Fetch available options when device connects
-        self._loop.create_task(self._update_options())
+        # Note: Options will be populated when device provides mode list
+        # For now, entity will work with empty options until implemented
 
     async def _update_options(self):
         """Fetch VU mode options from device."""
@@ -101,8 +101,8 @@ class EversoloSpectrumModeSelect(Select):
             cmd_handler=self.handle_command,
         )
 
-        # Fetch available options when device connects
-        self._loop.create_task(self._update_options())
+        # Note: Options will be populated when device provides mode list
+        # For now, entity will work with empty options until implemented
 
     async def _update_options(self):
         """Fetch spectrum mode options from device."""
