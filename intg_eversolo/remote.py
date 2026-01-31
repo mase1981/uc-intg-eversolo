@@ -52,7 +52,7 @@ class EversoloRemote(Remote):
 
     def _get_ui_pages(self) -> list[dict]:
         """Return UI pages for remote control."""
-        pages = [
+        return [
             {
                 "page_id": "playback",
                 "name": "Playback",
@@ -82,80 +82,34 @@ class EversoloRemote(Remote):
                     {"type": "text", "text": "Vol +10", "command": {"cmd_id": "VOLUME_UP_10"}, "location": {"x": 2, "y": 1}},
                 ],
             },
+            {
+                "page_id": "outputs",
+                "name": "Audio Outputs",
+                "grid": {"width": 3, "height": 3},
+                "items": [
+                    {"type": "text", "text": "RCA", "command": {"cmd_id": "OUTPUT_RCA"}, "location": {"x": 0, "y": 0}},
+                    {"type": "text", "text": "XLR", "command": {"cmd_id": "OUTPUT_XLR"}, "location": {"x": 1, "y": 0}},
+                    {"type": "text", "text": "HDMI", "command": {"cmd_id": "OUTPUT_HDMI"}, "location": {"x": 2, "y": 0}},
+                    {"type": "text", "text": "USB DAC", "command": {"cmd_id": "OUTPUT_USB"}, "location": {"x": 0, "y": 1}},
+                    {"type": "text", "text": "OPT/COAX", "command": {"cmd_id": "OUTPUT_SPDIF"}, "location": {"x": 1, "y": 1}},
+                    {"type": "text", "text": "XLR/RCA", "command": {"cmd_id": "OUTPUT_XLRRCA"}, "location": {"x": 2, "y": 1}},
+                    {"type": "text", "text": "IIS", "command": {"cmd_id": "OUTPUT_IIS"}, "location": {"x": 0, "y": 2}},
+                ],
+            },
+            {
+                "page_id": "brightness",
+                "name": "Brightness",
+                "grid": {"width": 2, "height": 3},
+                "items": [
+                    {"type": "text", "text": "Display -", "command": {"cmd_id": "DISPLAY_DIM"}, "location": {"x": 0, "y": 0}},
+                    {"type": "text", "text": "Display +", "command": {"cmd_id": "DISPLAY_BRIGHT"}, "location": {"x": 1, "y": 0}},
+                    {"type": "text", "text": "Display Off", "command": {"cmd_id": "DISPLAY_OFF"}, "location": {"x": 0, "y": 1}},
+                    {"type": "text", "text": "Display On", "command": {"cmd_id": "DISPLAY_ON"}, "location": {"x": 1, "y": 1}},
+                    {"type": "text", "text": "Knob -", "command": {"cmd_id": "KNOB_DIM"}, "location": {"x": 0, "y": 2}},
+                    {"type": "text", "text": "Knob +", "command": {"cmd_id": "KNOB_BRIGHT"}, "location": {"x": 1, "y": 2}},
+                ],
+            },
         ]
-
-        # Dynamically build outputs page based on available outputs
-        outputs_page = self._build_outputs_page()
-        if outputs_page:
-            pages.append(outputs_page)
-
-        # Add brightness page
-        pages.append({
-            "page_id": "brightness",
-            "name": "Brightness",
-            "grid": {"width": 2, "height": 3},
-            "items": [
-                {"type": "text", "text": "Display -", "command": {"cmd_id": "DISPLAY_DIM"}, "location": {"x": 0, "y": 0}},
-                {"type": "text", "text": "Display +", "command": {"cmd_id": "DISPLAY_BRIGHT"}, "location": {"x": 1, "y": 0}},
-                {"type": "text", "text": "Display Off", "command": {"cmd_id": "DISPLAY_OFF"}, "location": {"x": 0, "y": 1}},
-                {"type": "text", "text": "Display On", "command": {"cmd_id": "DISPLAY_ON"}, "location": {"x": 1, "y": 1}},
-                {"type": "text", "text": "Knob -", "command": {"cmd_id": "KNOB_DIM"}, "location": {"x": 0, "y": 2}},
-                {"type": "text", "text": "Knob +", "command": {"cmd_id": "KNOB_BRIGHT"}, "location": {"x": 1, "y": 2}},
-            ],
-        })
-
-        return pages
-
-    def _build_outputs_page(self) -> dict | None:
-        """Build outputs page dynamically based on available outputs."""
-        available_outputs = self._device.outputs
-        if not available_outputs:
-            return None
-
-        # Map tag names to display names
-        output_map = {
-            "RCA": "RCA",
-            "XLR": "XLR",
-            "HDMI": "HDMI",
-            "USB": "USB DAC",
-            "SPDIF": "OPT/COAX",
-            "XLRRCA": "XLR/RCA",
-            "IIS": "IIS",
-        }
-
-        # Build button items for available outputs
-        items = []
-        x, y = 0, 0
-        max_cols = 3
-
-        for tag in available_outputs.keys():
-            # Get display name
-            display_name = output_map.get(tag, tag)
-            cmd_id = f"OUTPUT_{tag}"
-
-            items.append({
-                "type": "text",
-                "text": display_name,
-                "command": {"cmd_id": cmd_id},
-                "location": {"x": x, "y": y}
-            })
-
-            x += 1
-            if x >= max_cols:
-                x = 0
-                y += 1
-
-        # Calculate grid size
-        num_items = len(items)
-        cols = min(num_items, max_cols)
-        rows = (num_items + max_cols - 1) // max_cols
-
-        return {
-            "page_id": "outputs",
-            "name": "Audio Outputs",
-            "grid": {"width": cols, "height": rows},
-            "items": items,
-        }
 
     async def handle_command(
         self, entity: Remote, cmd_id: str, params: dict[str, Any] | None
