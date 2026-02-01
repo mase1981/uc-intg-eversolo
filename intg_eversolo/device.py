@@ -22,8 +22,8 @@ class EversoloDevice(PollingDevice):
     """Eversolo device implementation using PollingDevice."""
 
     def __init__(self, device_config: EversoloConfig, **kwargs):
-        # Eversolo devices are VERY slow to respond - use 20 second poll interval to prevent overwhelming device
-        super().__init__(device_config, poll_interval=20, **kwargs)
+        # Use 5 second poll interval for responsive UI updates
+        super().__init__(device_config, poll_interval=5, **kwargs)
         self._device_config = device_config
         self._session: aiohttp.ClientSession | None = None
         self._state_data: dict[str, Any] = {}
@@ -160,7 +160,7 @@ class EversoloDevice(PollingDevice):
 
     async def poll_device(self) -> None:
         """Poll device for current state - fetches ALL device data like HA integration."""
-        _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, 20)
+        _LOG.debug("[%s] >>> Polling device (interval: %s seconds)", self.log_id, 5)
         try:
             # Fetch device model info on first poll
             if not self._model_info:
@@ -176,6 +176,7 @@ class EversoloDevice(PollingDevice):
             )
 
             self._state_data["music_control_state"] = music_state
+            self._state_data["device_reachable"] = True  # Device responded successfully
 
             if input_output_state:
                 self._state_data["input_output_state"] = input_output_state
@@ -189,12 +190,60 @@ class EversoloDevice(PollingDevice):
             _LOG.debug("[%s] >>> Poll completed successfully", self.log_id)
 
         except Exception as err:
-            _LOG.error("[%s] Poll error: %s", self.log_id, err, exc_info=True)
+            # Device is unreachable - assume it's powered off
+            _LOG.warning("[%s] Device unreachable, assuming powered off: %s", self.log_id, err)
+            self._state_data["device_reachable"] = False
+            self._notify_entities_unavailable()
+
+    def _notify_entities_unavailable(self) -> None:
+        """Notify entities that device is unavailable (powered off or unreachable)."""
+        from ucapi.media_player import Attributes as MediaAttributes, States as MediaStates
+        from ucapi.sensor import Attributes as SensorAttributes, States as SensorStates
+
+        # Set all entities to unavailable/off state
+        media_player_id = f"media_player.{self.identifier}"
+        media_player_attrs = {
+            MediaAttributes.STATE: MediaStates.OFF,
+            MediaAttributes.VOLUME: 0,
+            MediaAttributes.MUTED: False,
+            MediaAttributes.SOURCE: "",
+            MediaAttributes.SOURCE_LIST: [],
+            MediaAttributes.MEDIA_TITLE: "",
+            MediaAttributes.MEDIA_ARTIST: "",
+            MediaAttributes.MEDIA_ALBUM: "",
+            MediaAttributes.MEDIA_IMAGE_URL: "",
+            MediaAttributes.MEDIA_TYPE: "",
+            MediaAttributes.MEDIA_DURATION: 0,
+            MediaAttributes.MEDIA_POSITION: 0,
+        }
+        self.events.emit(DeviceEvents.UPDATE, media_player_id, media_player_attrs)
+
+        # Sensors - all unavailable
+        for sensor_suffix in ["state", "source", "volume", "output"]:
+            sensor_id = f"sensor.{self.identifier}.{sensor_suffix}"
+            sensor_attrs = {
+                SensorAttributes.STATE: SensorStates.UNAVAILABLE,
+                SensorAttributes.VALUE: "Offline"
+            }
+            if sensor_suffix == "volume":
+                sensor_attrs[SensorAttributes.UNIT] = "%"
+            self.events.emit(DeviceEvents.UPDATE, sensor_id, sensor_attrs)
+
+        # Remote entity - mark as unavailable
+        from ucapi.remote import Attributes as RemoteAttributes
+        remote_id = f"remote.{self.identifier}"
+        remote_attrs = {RemoteAttributes.STATE: "OFF"}
+        self.events.emit(DeviceEvents.UPDATE, remote_id, remote_attrs)
 
     def _notify_entities(self) -> None:
         """Notify entities of state changes - Panasonic pattern with entity_id and attributes."""
         from ucapi.media_player import Attributes as MediaAttributes, States as MediaStates
         from ucapi.sensor import Attributes as SensorAttributes, States as SensorStates
+
+        # Check if device is reachable
+        if not self._state_data.get("device_reachable", True):
+            self._notify_entities_unavailable()
+            return
 
         # Media Player Entity
         media_player_id = f"media_player.{self.identifier}"
@@ -290,6 +339,38 @@ class EversoloDevice(PollingDevice):
             RemoteAttributes.STATE: "ON"
         }
         self.events.emit(DeviceEvents.UPDATE, remote_id, remote_attrs)
+
+        # Select entities: Input, VU Mode, Spectrum Mode
+        from ucapi.select import Attributes as SelectAttributes, States as SelectStates
+
+        # Input Source Select
+        input_select_id = f"select.{self.identifier}_input"
+        input_options = list(self.sources.values()) if self.sources else []
+        current_input = self.get_current_source()
+        input_select_attrs = {
+            SelectAttributes.STATE: SelectStates.ON if current_input else SelectStates.UNAVAILABLE,
+            SelectAttributes.VALUE: current_input if current_input else "",
+            SelectAttributes.OPTIONS: input_options,
+        }
+        self.events.emit(DeviceEvents.UPDATE, input_select_id, input_select_attrs)
+
+        # VU Mode Select - will be populated on first fetch
+        vu_select_id = f"select.{self.identifier}_vu_mode"
+        vu_select_attrs = {
+            SelectAttributes.STATE: SelectStates.UNAVAILABLE,
+            SelectAttributes.VALUE: "",
+            SelectAttributes.OPTIONS: [],
+        }
+        self.events.emit(DeviceEvents.UPDATE, vu_select_id, vu_select_attrs)
+
+        # Spectrum Mode Select - will be populated on first fetch
+        spectrum_select_id = f"select.{self.identifier}_spectrum_mode"
+        spectrum_select_attrs = {
+            SelectAttributes.STATE: SelectStates.UNAVAILABLE,
+            SelectAttributes.VALUE: "",
+            SelectAttributes.OPTIONS: [],
+        }
+        self.events.emit(DeviceEvents.UPDATE, spectrum_select_id, spectrum_select_attrs)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""

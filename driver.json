@@ -1,6 +1,6 @@
 {
   "driver_id": "eversolo",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "min_core_api": "0.22.0",
   "name": {
     "en": "Eversolo"
@@ -14,7 +14,7 @@
     "email": "meir.miyara@gmail.com"
   },
   "home_page": "https://github.com/mase1981/uc-intg-eversolo",
-  "release_date": "2026-02-01",
+  "release_date": "2026-02-02",
   "setup_data_schema": {
     "title": {
       "en": "Eversolo Setup"

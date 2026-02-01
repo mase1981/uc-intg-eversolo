@@ -56,17 +56,12 @@ class EversoloRemoteA8(Remote):
             {
                 "page_id": "playback",
                 "name": "Playback",
-                "grid": {"width": 3, "height": 3},
+                "grid": {"width": 3, "height": 2},
                 "items": [
                     {"type": "icon", "icon": "uc:prev", "command": {"cmd_id": "PREVIOUS"}, "location": {"x": 0, "y": 0}},
-                    {"type": "icon", "icon": "uc:play", "command": {"cmd_id": "PLAY"}, "location": {"x": 1, "y": 0}},
+                    {"type": "icon", "icon": "uc:play-pause", "command": {"cmd_id": "PLAY_PAUSE"}, "location": {"x": 1, "y": 0}},
                     {"type": "icon", "icon": "uc:next", "command": {"cmd_id": "NEXT"}, "location": {"x": 2, "y": 0}},
-                    {"type": "icon", "icon": "uc:shuffle", "command": {"cmd_id": "SHUFFLE"}, "location": {"x": 0, "y": 1}},
-                    {"type": "icon", "icon": "uc:pause", "command": {"cmd_id": "PAUSE"}, "location": {"x": 1, "y": 1}},
-                    {"type": "icon", "icon": "uc:repeat", "command": {"cmd_id": "REPEAT"}, "location": {"x": 2, "y": 1}},
-                    {"type": "icon", "icon": "uc:backward", "command": {"cmd_id": "REWIND"}, "location": {"x": 0, "y": 2}},
-                    {"type": "icon", "icon": "uc:stop", "command": {"cmd_id": "STOP"}, "location": {"x": 1, "y": 2}},
-                    {"type": "icon", "icon": "uc:forward", "command": {"cmd_id": "FAST_FORWARD"}, "location": {"x": 2, "y": 2}},
+                    {"type": "icon", "icon": "uc:power-on", "command": {"cmd_id": "POWER_TOGGLE"}, "location": {"x": 1, "y": 1}},
                 ],
             },
             {
@@ -75,10 +70,9 @@ class EversoloRemoteA8(Remote):
                 "grid": {"width": 3, "height": 2},
                 "items": [
                     {"type": "icon", "icon": "uc:minus", "command": {"cmd_id": "VOLUME_DOWN"}, "location": {"x": 0, "y": 0}},
-                    {"type": "icon", "icon": "uc:mute", "command": {"cmd_id": "MUTE"}, "location": {"x": 1, "y": 0}},
+                    {"type": "icon", "icon": "uc:mute", "command": {"cmd_id": "MUTE_TOGGLE"}, "location": {"x": 1, "y": 0}},
                     {"type": "icon", "icon": "uc:plus", "command": {"cmd_id": "VOLUME_UP"}, "location": {"x": 2, "y": 0}},
                     {"type": "text", "text": "Vol -10", "command": {"cmd_id": "VOLUME_DOWN_10"}, "location": {"x": 0, "y": 1}},
-                    {"type": "text", "text": "Unmute", "command": {"cmd_id": "UNMUTE"}, "location": {"x": 1, "y": 1}},
                     {"type": "text", "text": "Vol +10", "command": {"cmd_id": "VOLUME_UP_10"}, "location": {"x": 2, "y": 1}},
                 ],
             },
@@ -122,44 +116,50 @@ class EversoloRemoteA8(Remote):
 
         try:
             # Playback commands
-            if cmd_id == "PLAY":
+            if cmd_id == "PLAY_PAUSE":
                 success = await self._device.play_pause()
-            elif cmd_id == "PAUSE":
-                success = await self._device.play_pause()
-            elif cmd_id == "STOP":
-                success = await self._device.play_pause()
+                if success:
+                    await self._device.poll_device()  # Immediate update
             elif cmd_id == "NEXT":
                 success = await self._device.next_track()
+                if success:
+                    await self._device.poll_device()  # Immediate update
             elif cmd_id == "PREVIOUS":
                 success = await self._device.previous_track()
-            elif cmd_id == "SHUFFLE":
-                _LOG.warning("[%s] SHUFFLE not supported by device", self.id)
-                return StatusCodes.NOT_IMPLEMENTED
-            elif cmd_id == "REPEAT":
-                _LOG.warning("[%s] REPEAT not supported by device", self.id)
-                return StatusCodes.NOT_IMPLEMENTED
-            elif cmd_id == "REWIND":
-                _LOG.warning("[%s] REWIND not supported by device", self.id)
-                return StatusCodes.NOT_IMPLEMENTED
-            elif cmd_id == "FAST_FORWARD":
-                _LOG.warning("[%s] FAST_FORWARD not supported by device", self.id)
-                return StatusCodes.NOT_IMPLEMENTED
+                if success:
+                    await self._device.poll_device()  # Immediate update
+
+            # Power control
+            elif cmd_id == "POWER_TOGGLE":
+                # If device is reachable, turn it off; otherwise try to wake it
+                success = await self._device.power_off()
 
             # Volume commands
             elif cmd_id == "VOLUME_UP":
                 success = await self._device.volume_up()
+                if success:
+                    await self._device.poll_device()  # Immediate update
             elif cmd_id == "VOLUME_DOWN":
                 success = await self._device.volume_down()
+                if success:
+                    await self._device.poll_device()  # Immediate update
             elif cmd_id == "VOLUME_UP_10":
                 current = self._device.get_volume() or 0
                 success = await self._device.set_volume(min(100, current + 10))
+                if success:
+                    await self._device.poll_device()  # Immediate update
             elif cmd_id == "VOLUME_DOWN_10":
                 current = self._device.get_volume() or 0
                 success = await self._device.set_volume(max(0, current - 10))
-            elif cmd_id == "MUTE":
-                success = await self._device.mute()
-            elif cmd_id == "UNMUTE":
-                success = await self._device.unmute()
+                if success:
+                    await self._device.poll_device()  # Immediate update
+            elif cmd_id == "MUTE_TOGGLE":
+                if self._device.get_muted():
+                    success = await self._device.unmute()
+                else:
+                    success = await self._device.mute()
+                if success:
+                    await self._device.poll_device()  # Immediate update
 
             # Output selection commands (dynamic based on available outputs)
             elif cmd_id.startswith("OUTPUT_"):

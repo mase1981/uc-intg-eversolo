@@ -97,15 +97,21 @@ class EversoloMediaPlayer(MediaPlayer):
             elif cmd_id == Commands.VOLUME:
                 if params and "volume" in params:
                     success = await self._device.set_volume(int(params["volume"]))
+                    if success:
+                        await self._device.poll_device()  # Immediate update
                     return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
                 return StatusCodes.BAD_REQUEST
 
             elif cmd_id == Commands.VOLUME_UP:
                 success = await self._device.volume_up()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.VOLUME_DOWN:
                 success = await self._device.volume_down()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.MUTE_TOGGLE:
@@ -113,31 +119,45 @@ class EversoloMediaPlayer(MediaPlayer):
                     success = await self._device.unmute()
                 else:
                     success = await self._device.mute()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.MUTE:
                 success = await self._device.mute()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.UNMUTE:
                 success = await self._device.unmute()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.PLAY_PAUSE:
                 success = await self._device.play_pause()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.NEXT:
                 success = await self._device.next_track()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.PREVIOUS:
                 success = await self._device.previous_track()
+                if success:
+                    await self._device.poll_device()  # Immediate update
                 return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 
             elif cmd_id == Commands.SEEK:
                 if params and "media_position" in params:
                     success = await self._device.seek(float(params["media_position"]))
+                    if success:
+                        await self._device.poll_device()  # Immediate update
                     return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
                 return StatusCodes.BAD_REQUEST
 

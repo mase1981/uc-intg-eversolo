@@ -41,29 +41,6 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
                     "label": {"en": "Port"},
                     "field": {"text": {"value": "9529"}},
                 },
-                {
-                    "id": "model",
-                    "label": {"en": "Device Model"},
-                    "field": {
-                        "dropdown": {
-                            "value": "DMP-A6",
-                            "items": [
-                                {
-                                    "id": "DMP-A6",
-                                    "label": {"en": "DMP-A6 (Music Streamer with HDMI & Knob)"}
-                                },
-                                {
-                                    "id": "DMP-A8",
-                                    "label": {"en": "DMP-A8 (DAC/Preamp with Knob - No HDMI)"}
-                                },
-                                {
-                                    "id": "DMP-A10",
-                                    "label": {"en": "DMP-A10 (DAC/Preamp - No HDMI/Knob)"}
-                                },
-                            ],
-                        }
-                    },
-                },
             ],
         )
 
@@ -80,28 +57,47 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
 
         port = int(input_values.get("port", 9529))
         name = input_values.get("name", f"Eversolo ({host})").strip()
-        model = input_values.get("model", "DMP-A6")
 
         try:
-            test_config = EversoloConfig(
+            # Create temporary config for connection test
+            temp_config = EversoloConfig(
                 identifier=f"eversolo_{host.replace('.', '_')}_{port}",
                 name=name,
                 host=host,
                 port=port,
-                model=model,
+                model="DMP-A6",  # Temporary, will be auto-detected
             )
 
-            _LOG.info("Testing connection to %s:%s", host, port)
+            _LOG.info("Testing connection to %s:%s and detecting model...", host, port)
 
-            test_device = EversoloDevice(test_config)
+            test_device = EversoloDevice(temp_config)
             connected = await asyncio.wait_for(test_device.connect(), timeout=10.0)
-            await test_device.disconnect()
 
             if not connected:
+                await test_device.disconnect()
                 raise ValueError(f"Failed to connect to {host}:{port}")
 
-            _LOG.info("Successfully validated connection to %s:%s", host, port)
-            return test_config
+            # Auto-detect model from API
+            detected_model = test_device.model_name
+            if not detected_model:
+                _LOG.warning("Could not auto-detect model, defaulting to DMP-A6")
+                detected_model = "DMP-A6"
+            else:
+                _LOG.info("Auto-detected model: %s", detected_model)
+
+            await test_device.disconnect()
+
+            # Create final config with detected model
+            final_config = EversoloConfig(
+                identifier=f"eversolo_{host.replace('.', '_')}_{port}",
+                name=f"{name} {detected_model}" if name == f"Eversolo ({host})" else name,
+                host=host,
+                port=port,
+                model=detected_model,
+            )
+
+            _LOG.info("Successfully validated connection to %s:%s (Model: %s)", host, port, detected_model)
+            return final_config
 
         except asyncio.TimeoutError:
             raise ValueError(
