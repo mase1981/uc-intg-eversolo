@@ -340,37 +340,37 @@ class EversoloDevice(PollingDevice):
         }
         self.events.emit(DeviceEvents.UPDATE, remote_id, remote_attrs)
 
-        # Select entities: Input, VU Mode, Spectrum Mode
-        from ucapi.select import Attributes as SelectAttributes, States as SelectStates
-
-        # Input Source Select
-        input_select_id = f"select.{self.identifier}_input"
-        input_options = list(self.sources.values()) if self.sources else []
-        current_input = self.get_current_source()
-        input_select_attrs = {
-            SelectAttributes.STATE: SelectStates.ON if current_input else SelectStates.UNAVAILABLE,
-            SelectAttributes.VALUE: current_input if current_input else "",
-            SelectAttributes.OPTIONS: input_options,
-        }
-        self.events.emit(DeviceEvents.UPDATE, input_select_id, input_select_attrs)
-
-        # VU Mode Select - will be populated on first fetch
-        vu_select_id = f"select.{self.identifier}_vu_mode"
-        vu_select_attrs = {
-            SelectAttributes.STATE: SelectStates.UNAVAILABLE,
-            SelectAttributes.VALUE: "",
-            SelectAttributes.OPTIONS: [],
-        }
-        self.events.emit(DeviceEvents.UPDATE, vu_select_id, vu_select_attrs)
-
-        # Spectrum Mode Select - will be populated on first fetch
-        spectrum_select_id = f"select.{self.identifier}_spectrum_mode"
-        spectrum_select_attrs = {
-            SelectAttributes.STATE: SelectStates.UNAVAILABLE,
-            SelectAttributes.VALUE: "",
-            SelectAttributes.OPTIONS: [],
-        }
-        self.events.emit(DeviceEvents.UPDATE, spectrum_select_id, spectrum_select_attrs)
+        # Select entities disabled until ucapi adds select entity support
+        # from ucapi.select import Attributes as SelectAttributes, States as SelectStates
+        #
+        # # Input Source Select
+        # input_select_id = f"select.{self.identifier}_input"
+        # input_options = list(self.sources.values()) if self.sources else []
+        # current_input = self.get_current_source()
+        # input_select_attrs = {
+        #     SelectAttributes.STATE: SelectStates.ON if current_input else SelectStates.UNAVAILABLE,
+        #     SelectAttributes.VALUE: current_input if current_input else "",
+        #     SelectAttributes.OPTIONS: input_options,
+        # }
+        # self.events.emit(DeviceEvents.UPDATE, input_select_id, input_select_attrs)
+        #
+        # # VU Mode Select - will be populated on first fetch
+        # vu_select_id = f"select.{self.identifier}_vu_mode"
+        # vu_select_attrs = {
+        #     SelectAttributes.STATE: SelectStates.UNAVAILABLE,
+        #     SelectAttributes.VALUE: "",
+        #     SelectAttributes.OPTIONS: [],
+        # }
+        # self.events.emit(DeviceEvents.UPDATE, vu_select_id, vu_select_attrs)
+        #
+        # # Spectrum Mode Select - will be populated on first fetch
+        # spectrum_select_id = f"select.{self.identifier}_spectrum_mode"
+        # spectrum_select_attrs = {
+        #     SelectAttributes.STATE: SelectStates.UNAVAILABLE,
+        #     SelectAttributes.VALUE: "",
+        #     SelectAttributes.OPTIONS: [],
+        # }
+        # self.events.emit(DeviceEvents.UPDATE, spectrum_select_id, spectrum_select_attrs)
 
     def _parse_sources(self, input_output_state: dict) -> None:
         """Parse and store available sources."""

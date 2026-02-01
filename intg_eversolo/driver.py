@@ -15,11 +15,12 @@ from intg_eversolo.media_player import EversoloMediaPlayer
 from intg_eversolo.remote_a6 import EversoloRemoteA6
 from intg_eversolo.remote_a8 import EversoloRemoteA8
 from intg_eversolo.remote_a10 import EversoloRemoteA10
-from intg_eversolo.select import (
-    EversoloInputSelect,
-    EversoloSpectrumModeSelect,
-    EversoloVUModeSelect,
-)
+# Select entities disabled until ucapi adds select entity support
+# from intg_eversolo.select import (
+#     EversoloInputSelect,
+#     EversoloSpectrumModeSelect,
+#     EversoloVUModeSelect,
+# )
 from intg_eversolo.sensor import (
     EversoloActiveOutputSensor,
     EversoloSourceSensor,
@@ -49,11 +50,12 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
                     EversoloVolumeSensor(cfg, dev),
                     EversoloActiveOutputSensor(cfg, dev),
                 ],
-                lambda cfg, dev: [
-                    EversoloInputSelect(cfg, dev),
-                    EversoloVUModeSelect(cfg, dev),
-                    EversoloSpectrumModeSelect(cfg, dev),
-                ],
+                # Select entities disabled until ucapi adds select entity support
+                # lambda cfg, dev: [
+                #     EversoloInputSelect(cfg, dev),
+                #     EversoloVUModeSelect(cfg, dev),
+                #     EversoloSpectrumModeSelect(cfg, dev),
+                # ],
             ],
             driver_id="eversolo",
         )
