@@ -28,17 +28,15 @@ class EversoloInputSelect(Select):
         entity_id = f"select.{device_config.identifier}_input"
         entity_name = f"{device_config.name} Input Source"
 
-        features = [Features.SELECT]
         attributes = {
             Attributes.STATE: States.UNAVAILABLE,
-            Attributes.VALUE: "",
+            Attributes.CURRENT_OPTION: "",
             Attributes.OPTIONS: [],
         }
 
         super().__init__(
             entity_id,
             entity_name,
-            features,
             attributes,
             cmd_handler=self.handle_command,
         )
@@ -77,17 +75,15 @@ class EversoloVUModeSelect(Select):
         entity_id = f"select.{device_config.identifier}_vu_mode"
         entity_name = f"{device_config.name} VU Meter Mode"
 
-        features = [Features.SELECT]
         attributes = {
             Attributes.STATE: States.UNAVAILABLE,
-            Attributes.VALUE: "",
+            Attributes.CURRENT_OPTION: "",
             Attributes.OPTIONS: [],
         }
 
         super().__init__(
             entity_id,
             entity_name,
-            features,
             attributes,
             cmd_handler=self.handle_command,
         )
@@ -143,17 +139,15 @@ class EversoloSpectrumModeSelect(Select):
         entity_id = f"select.{device_config.identifier}_spectrum_mode"
         entity_name = f"{device_config.name} Spectrum Mode"
 
-        features = [Features.SELECT]
         attributes = {
             Attributes.STATE: States.UNAVAILABLE,
-            Attributes.VALUE: "",
+            Attributes.CURRENT_OPTION: "",
             Attributes.OPTIONS: [],
         }
 
         super().__init__(
             entity_id,
             entity_name,
-            features,
             attributes,
             cmd_handler=self.handle_command,
         )
