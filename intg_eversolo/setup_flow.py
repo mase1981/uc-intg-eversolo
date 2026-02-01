@@ -53,6 +53,10 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
                                     "label": {"en": "DMP-A6 (Music Streamer with HDMI & Knob)"}
                                 },
                                 {
+                                    "id": "DMP-A8",
+                                    "label": {"en": "DMP-A8 (DAC/Preamp with Knob - No HDMI)"}
+                                },
+                                {
                                     "id": "DMP-A10",
                                     "label": {"en": "DMP-A10 (DAC/Preamp - No HDMI/Knob)"}
                                 },

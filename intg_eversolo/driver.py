@@ -13,6 +13,7 @@ from intg_eversolo.config import EversoloConfig
 from intg_eversolo.device import EversoloDevice
 from intg_eversolo.media_player import EversoloMediaPlayer
 from intg_eversolo.remote_a6 import EversoloRemoteA6
+from intg_eversolo.remote_a8 import EversoloRemoteA8
 from intg_eversolo.remote_a10 import EversoloRemoteA10
 from intg_eversolo.sensor import (
     EversoloActiveOutputSensor,
@@ -32,7 +33,11 @@ class EversoloDriver(BaseIntegrationDriver[EversoloDevice, EversoloConfig]):
             device_class=EversoloDevice,
             entity_classes=[
                 EversoloMediaPlayer,
-                lambda cfg, dev: EversoloRemoteA6(cfg, dev) if cfg.model == "DMP-A6" else EversoloRemoteA10(cfg, dev),
+                lambda cfg, dev: (
+                    EversoloRemoteA6(cfg, dev) if cfg.model == "DMP-A6" else
+                    EversoloRemoteA8(cfg, dev) if cfg.model == "DMP-A8" else
+                    EversoloRemoteA10(cfg, dev)
+                ),
                 lambda cfg, dev: [
                     EversoloStateSensor(cfg, dev),
                     EversoloSourceSensor(cfg, dev),

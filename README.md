@@ -99,36 +99,39 @@ This integration supports multiple Eversolo models with **model-specific remote 
 | Model | Type | Description |
 |-------|------|-------------|
 | **DMP-A6** | Music Streamer | Full-featured streamer with HDMI output and knob LED |
+| **DMP-A8** | DAC/Preamp | Hybrid DAC with knob LED, EQ, and extensive I/O options |
 | **DMP-A10** | DAC/Preamp | High-end DAC with advanced DSP and subwoofer management |
 
 ### Feature Comparison
 
-| Feature | DMP-A6 | DMP-A10 | Notes |
-|---------|:------:|:-------:|-------|
-| **Media Player** | ✅ | ✅ | Full playback control |
-| **Volume Control** | ✅ | ✅ | Volume slider, up/down, mute |
-| **Source Selection** | ✅ | ✅ | All available inputs |
-| **Sensors** | ✅ | ✅ | State, source, volume, output |
-| **Remote Entity** | ✅ | ✅ | Model-specific button layout |
-| | | | |
-| **Remote - Playback** | ✅ | ✅ | Play, pause, stop, next, previous |
-| **Remote - Volume** | ✅ | ✅ | Vol +/-, mute, +10/-10 |
-| **Remote - Display Controls** | ✅ | ✅ | Display brightness +/-, off/on |
-| **Remote - Knob Controls** | ✅ | ❌ | Knob brightness (A6 hardware only) |
-| | | | |
-| **Audio Outputs** | | | |
-| • RCA (Analog) | ✅ | ✅ | Analog RCA output |
-| • XLR (Balanced) | ✅ | ✅ | Balanced XLR output |
-| • XLR/RCA (Combined) | ✅ | ✅ | Simultaneous XLR+RCA output |
-| • HDMI | ✅ | ❌ | **A6 only** - Digital video/audio |
-| • OPT/COAX (Digital) | ✅ | ✅ | Optical/Coaxial SPDIF |
-| | | | |
-| **Advanced Features** | | | |
-| • DSP Settings | ❌ | ✅ | **A10 only** - Digital signal processing |
-| • Subwoofer Management | ❌ | ✅ | **A10 only** - Sub output control |
-| • EQ Settings | ✅ | ❌ | **A6 only** - Equalizer |
-| • VU Meter Modes | ✅ | ✅ | Multiple VU display styles |
-| • Spectrum Modes | ✅ | ✅ | Spectrum analyzer displays |
+| Feature | DMP-A6 | DMP-A8 | DMP-A10 | Notes |
+|---------|:------:|:------:|:-------:|-------|
+| **Media Player** | ✅ | ✅ | ✅ | Full playback control |
+| **Volume Control** | ✅ | ✅ | ✅ | Volume slider, up/down, mute |
+| **Source Selection** | ✅ | ✅ | ✅ | All available inputs |
+| **Sensors** | ✅ | ✅ | ✅ | State, source, volume, output |
+| **Remote Entity** | ✅ | ✅ | ✅ | Model-specific button layout |
+| | | | | |
+| **Remote - Playback** | ✅ | ✅ | ✅ | Play, pause, stop, next, previous |
+| **Remote - Volume** | ✅ | ✅ | ✅ | Vol +/-, mute, +10/-10 |
+| **Remote - Display Controls** | ✅ | ✅ | ✅ | Display brightness +/-, off/on |
+| **Remote - Knob Controls** | ✅ | ✅ | ❌ | Knob brightness (A6/A8 only) |
+| | | | | |
+| **Audio Outputs** | | | | |
+| • RCA (Analog) | ✅ | ✅ | ✅ | Analog RCA output |
+| • XLR (Balanced) | ✅ | ✅ | ✅ | Balanced XLR output |
+| • XLR/RCA (Combined) | ✅ | ✅ | ✅ | Simultaneous XLR+RCA output |
+| • HDMI | ✅ | ❌ | ❌ | **A6 only** - Digital video/audio |
+| • IIS | ❌ | ✅ | ❌ | **A8 only** - I2S output |
+| • OPT/COAX (Digital) | ✅ | ✅ | ✅ | Optical/Coaxial SPDIF |
+| | | | | |
+| **Advanced Features** | | | | |
+| • DSP Settings | ❌ | ✅ | ✅ | **A8/A10** - Digital signal processing |
+| • Subwoofer Management | ❌ | ✅ | ✅ | **A8/A10** - Sub output control |
+| • EQ Settings | ❌ | ✅ | ❌ | **A8 only** - Equalizer |
+| • DRC Settings | ❌ | ✅ | ❌ | **A8 only** - Dynamic range compression |
+| • VU Meter Modes | ✅ | ✅ | ✅ | Multiple VU display styles |
+| • Spectrum Modes | ✅ | ✅ | ✅ | Spectrum analyzer displays |
 
 ### Remote Entity Pages
 
@@ -138,16 +141,23 @@ This integration supports multiple Eversolo models with **model-specific remote 
 - 🔌 **Outputs** (3×3) - RCA, XLR, **HDMI**, OPT/COAX, XLR/RCA, USB DAC, IIS
 - 💡 **Brightness** (2×3) - Display controls + **Knob brightness**
 
+**DMP-A8 Remote (4 pages):**
+- 📀 **Playback** (3×3) - Same as A6
+- 🔊 **Volume** (3×2) - Same as A6
+- 🔌 **Outputs** (3×2) - RCA, XLR, **IIS**, OPT/COAX, XLR/RCA *(No HDMI)*
+- 💡 **Brightness** (2×3) - Display controls + **Knob brightness**
+
 **DMP-A10 Remote (4 pages):**
 - 📀 **Playback** (3×3) - Same as A6
 - 🔊 **Volume** (3×2) - Same as A6
-- 🔌 **Outputs** (2×2) - RCA, XLR, OPT/COAX, XLR/RCA *(No HDMI)*
+- 🔌 **Outputs** (2×2) - RCA, XLR, OPT/COAX, XLR/RCA *(No HDMI/IIS)*
 - 💡 **Display** (2×2) - Display brightness only *(No knob controls)*
 
 ### Model Selection
 
 During setup, you'll select your model from a dropdown:
 - **DMP-A6 (Music Streamer with HDMI & Knob)** - Select for A6 models
+- **DMP-A8 (DAC/Preamp with Knob - No HDMI)** - Select for A8 models
 - **DMP-A10 (DAC/Preamp - No HDMI/Knob)** - Select for A10 models
 
 The integration will automatically create the appropriate remote entity with model-specific buttons.
