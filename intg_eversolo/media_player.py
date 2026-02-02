@@ -57,6 +57,7 @@ class EversoloMediaPlayer(MediaPlayer):
                 Features.MEDIA_IMAGE_URL,
                 Features.MEDIA_TYPE,
                 Features.SELECT_SOURCE,
+                Features.SELECT_SOUND_MODE,
             ],
             {
                 Attributes.STATE: States.UNAVAILABLE,
@@ -64,6 +65,8 @@ class EversoloMediaPlayer(MediaPlayer):
                 Attributes.MUTED: False,
                 Attributes.SOURCE: "",
                 Attributes.SOURCE_LIST: [],
+                Attributes.SOUND_MODE: "",
+                Attributes.SOUND_MODE_LIST: [],
                 Attributes.MEDIA_IMAGE_URL: "",
                 Attributes.MEDIA_TYPE: "",
             },

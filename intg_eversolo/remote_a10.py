@@ -45,7 +45,14 @@ class EversoloRemoteA10(Remote):
     def _update_options(self) -> None:
         """Update remote UI options with static pages."""
         self.options = {
-            "simple_commands": [],  # No simple commands, only UI pages
+            "simple_commands": [
+                "OUTPUT_RCA",
+                "OUTPUT_XLR",
+                "OUTPUT_SPDIF",
+                "OUTPUT_XLRRCA",
+                "DISPLAY_ON",
+                "DISPLAY_OFF",
+            ],
             "button_mapping": [],  # No button mapping
             "user_interface": {"pages": self._get_ui_pages()},
         }
