@@ -35,6 +35,7 @@ Your support helps maintain this integration. Thank you! ❤️
 #### **Power Management**
 - **Power Off** - Turn off the device
 - **State Feedback** - Real-time power state monitoring
+## NOTE: Eversolo devices do NOT support power on via IP, there is zero way for the integration to do so, this is NOT an integration issue. To power on the device you need to use IR or the original remote, IR codes can be found [here](https://github.com/mase1981/uc-intg-eversolo/blob/main/Custom%20-%20learned%20IR%20codes_Eversolo%20DMP-A6_codeset_2026-02-04.csv)
 
 #### **Volume Control**
 - **Volume Up/Down** - Precise volume adjustment
