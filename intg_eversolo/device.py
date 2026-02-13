@@ -744,28 +744,32 @@ class EversoloDevice(PollingDevice):
             return False
     async def _fetch_and_store_mac_address(self, music_state: dict | None = None) -> None:
         """
-        Fetch MAC address from API and store in config for WakeOnLAN.
+        Fetch MAC address from API and persist to config for WakeOnLAN.
         MAC is in: get_state().deviceInfo.net_mac or get_device_model().net_mac
         """
         try:
+            mac = None
+
             # Try to get from provided music_state first
             if music_state:
                 mac = music_state.get("deviceInfo", {}).get("net_mac")
-                if mac:
-                    self._device_config.set_mac_address(mac)
-                    _LOG.info("[%s] MAC address auto-captured and stored: %s", self.log_id, mac)
-                    return
 
             # If not in music_state, fetch device model
-            device_model = await self.get_device_model()
-            if device_model:
-                mac = device_model.get("net_mac")
-                if mac:
-                    self._device_config.set_mac_address(mac)
-                    _LOG.info("[%s] MAC address fetched from device model: %s", self.log_id, mac)
-                    return
+            if not mac:
+                device_model = await self.get_device_model()
+                if device_model:
+                    mac = device_model.get("net_mac")
 
-            _LOG.warning("[%s] Could not fetch MAC address from device", self.log_id)
+            if mac:
+                # Use update_config to persist MAC address to JSON
+                if self.update_config(mac_address=mac):
+                    _LOG.info("[%s] MAC address captured and persisted: %s", self.log_id, mac)
+                else:
+                    # Fallback for setup flow (no config_manager)
+                    self._device_config.set_mac_address(mac)
+                    _LOG.info("[%s] MAC address captured (in-memory): %s", self.log_id, mac)
+            else:
+                _LOG.warning("[%s] Could not fetch MAC address from device", self.log_id)
 
         except Exception as err:
             _LOG.error("[%s] Failed to fetch MAC address: %s", self.log_id, err)

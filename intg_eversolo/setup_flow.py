@@ -87,13 +87,14 @@ class EversoloSetupFlow(BaseSetupFlow[EversoloConfig]):
 
             await test_device.disconnect()
 
-            # Create final config with detected model
+            # Create final config with detected model and captured MAC address
             final_config = EversoloConfig(
                 identifier=f"eversolo_{host.replace('.', '_')}_{port}",
                 name=f"{name} {detected_model}" if name == f"Eversolo ({host})" else name,
                 host=host,
                 port=port,
                 model=detected_model,
+                mac_address=temp_config.mac_address,
             )
 
             _LOG.info("Successfully validated connection to %s:%s (Model: %s)", host, port, detected_model)
