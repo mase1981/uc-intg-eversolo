@@ -32,6 +32,8 @@ class EversoloDevice(PollingDevice):
         self._outputs: dict[str, str] = {}
         self._output_tags: dict[str, str] = {}
         self._model_info: dict[str, Any] = {}
+        self._previous_media_title: str | None = None
+        self._end_of_track_poll_scheduled: bool = False
 
     @property
     def identifier(self) -> str:
@@ -183,6 +185,29 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
                 self._parse_outputs(input_output_state)
 
+            # Detect track changes for immediate UI updates
+            current_title = music_state.get("title", "")
+            playback_state = music_state.get("status", 0)
+            is_playing = playback_state == 1
+
+            if current_title and self._previous_media_title is not None:
+                if current_title != self._previous_media_title and is_playing:
+                    _LOG.info("[%s] Track changed: '%s' -> '%s'", self.log_id, self._previous_media_title, current_title)
+            self._previous_media_title = current_title
+
+            # Schedule quick follow-up poll when near end of track to catch auto-advance
+            if is_playing:
+                duration = music_state.get("duration", 0)
+                position = music_state.get("playingTime", 0)
+                if duration > 0 and position > 0:
+                    remaining = duration - position
+                    if 0 < remaining <= 5000 and not self._end_of_track_poll_scheduled:
+                        self._end_of_track_poll_scheduled = True
+                        _LOG.debug("[%s] Track ending soon (%dms remaining), scheduling quick poll", self.log_id, remaining)
+                        asyncio.create_task(self._poll_after_delay(1.5))
+                    elif remaining > 5000:
+                        self._end_of_track_poll_scheduled = False
+
             # Notify each entity with Panasonic pattern: emit(UPDATE, entity_id, attributes)
             # Framework routes these to specific entities
             _LOG.debug("[%s] >>> Notifying entities of state update", self.log_id)
@@ -194,6 +219,12 @@ class EversoloDevice(PollingDevice):
             _LOG.warning("[%s] Device unreachable, assuming powered off: %s", self.log_id, err)
             self._state_data["device_reachable"] = False
             self._notify_entities_unavailable()
+
+    async def _poll_after_delay(self, delay_seconds: float) -> None:
+        """Poll device after a short delay to catch track auto-advance."""
+        await asyncio.sleep(delay_seconds)
+        _LOG.debug("[%s] Executing delayed poll for track change detection", self.log_id)
+        await self.poll_device()
 
     def _notify_entities_unavailable(self) -> None:
         """Notify entities that device is unavailable (powered off or unreachable)."""
