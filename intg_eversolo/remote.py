@@ -133,17 +133,27 @@ class EversoloRemote(Remote):
             _LOG.debug("[%s] Extracted command: %s", self.id, cmd_id)
 
         try:
-            # Playback commands
+            # Playback commands - poll immediately after for media info update
             if cmd_id == "PLAY":
                 success = await self._device.play_pause()
+                if success:
+                    await self._device.poll_device()
             elif cmd_id == "PAUSE":
                 success = await self._device.play_pause()
+                if success:
+                    await self._device.poll_device()
             elif cmd_id == "STOP":
                 success = await self._device.play_pause()
+                if success:
+                    await self._device.poll_device()
             elif cmd_id == "NEXT":
                 success = await self._device.next_track()
+                if success:
+                    await self._device.poll_device()
             elif cmd_id == "PREVIOUS":
                 success = await self._device.previous_track()
+                if success:
+                    await self._device.poll_device()
             elif cmd_id == "SHUFFLE":
                 _LOG.warning("[%s] SHUFFLE not supported by device", self.id)
                 return StatusCodes.NOT_IMPLEMENTED
