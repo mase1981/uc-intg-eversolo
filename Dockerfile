@@ -20,4 +20,4 @@ LABEL org.opencontainers.image.source=https://github.com/mase1981/uc-intg-everso
 LABEL org.opencontainers.image.description="eversolo integration for Unfolded Circle Remote"
 LABEL org.opencontainers.image.licenses=MPL-2.0
 
-CMD ["python3", "-u", "-m", "intg_eversolo"]
+CMD ["python3", "-u", "-m", "uc_intg_eversolo"]

@@ -49,13 +49,16 @@ jobs:
                 --collect-all zeroconf \
                 --collect-all ucapi \
                 --collect-all ucapi_framework \
-                --hidden-import intg_${INTG_NAME}.driver \
-                --hidden-import intg_${INTG_NAME}.device \
-                --hidden-import intg_${INTG_NAME}.config \
-                --hidden-import intg_${INTG_NAME}.media_player \
-                --hidden-import intg_${INTG_NAME}.setup_flow \
+                --hidden-import uc_intg_${INTG_NAME}.driver \
+                --hidden-import uc_intg_${INTG_NAME}.device \
+                --hidden-import uc_intg_${INTG_NAME}.config \
+                --hidden-import uc_intg_${INTG_NAME}.media_player \
+                --hidden-import uc_intg_${INTG_NAME}.remote \
+                --hidden-import uc_intg_${INTG_NAME}.sensor \
+                --hidden-import uc_intg_${INTG_NAME}.select \
+                --hidden-import uc_intg_${INTG_NAME}.setup_flow \
                 --paths . \
-                intg_${INTG_NAME}/__init__.py"
+                uc_intg_${INTG_NAME}/__init__.py"
 
       - name: Prepare artifacts
         shell: bash
