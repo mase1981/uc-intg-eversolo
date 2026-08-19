@@ -88,9 +88,11 @@ class EversoloVUModeSelect(SelectEntity):
             return
         modes = self._device.vu_modes
         options = [m.get("title", f"Mode {m.get('index', '?')}") for m in modes]
+        index = self._device.vu_mode_index
+        current = options[index] if 0 <= index < len(options) else (options[0] if options else "")
         self.update({
             select.Attributes.STATE: select.States.ON if options else select.States.UNAVAILABLE,
-            select.Attributes.CURRENT_OPTION: options[0] if options else "",
+            select.Attributes.CURRENT_OPTION: current,
             select.Attributes.OPTIONS: options,
         })
 
@@ -137,9 +139,11 @@ class EversoloSpectrumModeSelect(SelectEntity):
             return
         modes = self._device.spectrum_modes
         options = [m.get("title", f"Mode {m.get('index', '?')}") for m in modes]
+        index = self._device.spectrum_mode_index
+        current = options[index] if 0 <= index < len(options) else (options[0] if options else "")
         self.update({
             select.Attributes.STATE: select.States.ON if options else select.States.UNAVAILABLE,
-            select.Attributes.CURRENT_OPTION: options[0] if options else "",
+            select.Attributes.CURRENT_OPTION: current,
             select.Attributes.OPTIONS: options,
         })
 

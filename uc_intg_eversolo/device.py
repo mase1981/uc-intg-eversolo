@@ -34,6 +34,8 @@ class EversoloDevice(PollingDevice):
         self._end_of_track_poll_scheduled: bool = False
         self._vu_modes: list[dict] = []
         self._spectrum_modes: list[dict] = []
+        self._vu_mode_index: int = 0
+        self._spectrum_mode_index: int = 0
 
     @property
     def identifier(self) -> str:
@@ -78,6 +80,14 @@ class EversoloDevice(PollingDevice):
     @property
     def spectrum_modes(self) -> list[dict]:
         return self._spectrum_modes
+
+    @property
+    def vu_mode_index(self) -> int:
+        return self._vu_mode_index
+
+    @property
+    def spectrum_mode_index(self) -> int:
+        return self._spectrum_mode_index
 
     @property
     def device_reachable(self) -> bool:
@@ -166,11 +176,12 @@ class EversoloDevice(PollingDevice):
                 self._parse_sources(input_output_state)
                 self._parse_outputs(input_output_state)
 
-            # Fetch VU/Spectrum modes once
-            if not self._vu_modes:
-                self._vu_modes = await self._fetch_vu_modes()
-            if not self._spectrum_modes:
-                self._spectrum_modes = await self._fetch_spectrum_modes()
+            vu_modes = await self._fetch_vu_modes()
+            if vu_modes:
+                self._vu_modes = vu_modes
+            spectrum_modes = await self._fetch_spectrum_modes()
+            if spectrum_modes:
+                self._spectrum_modes = spectrum_modes
 
             # Track change detection
             current_title = music_state.get("title", "")
@@ -572,7 +583,10 @@ class EversoloDevice(PollingDevice):
             result = await self._api_request(
                 "/SystemSettings/displaySettings/getVUModeList"
             )
-            return result.get("data", []) if result else []
+            if not result:
+                return []
+            self._vu_mode_index = result.get("currentIndex", self._vu_mode_index)
+            return result.get("data", [])
         except Exception as err:
             _LOG.error("[%s] Get VU modes failed: %s", self.log_id, err)
             return []
@@ -583,6 +597,7 @@ class EversoloDevice(PollingDevice):
                 f"/SystemSettings/displaySettings/setVUMode?index={index}",
                 parse_json=False,
             )
+            self._vu_mode_index = index
             return True
         except Exception as err:
             _LOG.error("[%s] Set VU mode failed: %s", self.log_id, err)
@@ -593,7 +608,10 @@ class EversoloDevice(PollingDevice):
             result = await self._api_request(
                 "/SystemSettings/displaySettings/getSpPlayModeList"
             )
-            return result.get("data", []) if result else []
+            if not result:
+                return []
+            self._spectrum_mode_index = result.get("currentIndex", self._spectrum_mode_index)
+            return result.get("data", [])
         except Exception as err:
             _LOG.error("[%s] Get spectrum modes failed: %s", self.log_id, err)
             return []
@@ -604,6 +622,7 @@ class EversoloDevice(PollingDevice):
                 f"/SystemSettings/displaySettings/setSpPlayModeList?index={index}",
                 parse_json=False,
             )
+            self._spectrum_mode_index = index
             return True
         except Exception as err:
             _LOG.error("[%s] Set spectrum mode failed: %s", self.log_id, err)

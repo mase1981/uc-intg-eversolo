@@ -20,6 +20,7 @@ SIMPLE_COMMANDS = [
     "OUTPUT_RCA", "OUTPUT_XLR", "OUTPUT_HDMI", "OUTPUT_USB",
     "OUTPUT_IIS", "OUTPUT_SPDIF", "OUTPUT_XLRRCA",
     "DISPLAY_ON", "DISPLAY_OFF",
+    "SCREEN_VU", "SCREEN_SPECTRUM",
     "PLAY_PAUSE", "NEXT", "PREVIOUS", "POWER_TOGGLE",
     "VOLUME_UP", "VOLUME_DOWN", "MUTE_TOGGLE",
 ]
@@ -172,6 +173,10 @@ class _EversoloRemoteBase(RemoteEntity):
                 success = await self._device.turn_screen_off()
             elif cmd_id == "DISPLAY_ON":
                 success = await self._device.turn_screen_on()
+            elif cmd_id == "SCREEN_VU":
+                success = await self._device.cycle_screen_mode(show_spectrum=False)
+            elif cmd_id == "SCREEN_SPECTRUM":
+                success = await self._device.cycle_screen_mode(show_spectrum=True)
             elif cmd_id == "KNOB_BRIGHT":
                 current = await self._device.get_knob_brightness() or 0
                 success = await self._device.set_knob_brightness(min(255, current + 20))
