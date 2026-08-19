@@ -120,14 +120,17 @@ class EversoloMediaPlayer(MediaPlayerEntity):
     ) -> StatusCodes:
         _LOG.info("[%s] Command: %s %s", self.id, cmd_id, params or "")
         try:
+            poll_after = True
             match cmd_id:
                 case media_player.Commands.ON:
                     success = await self._device.power_on()
+                    poll_after = False
                 case media_player.Commands.OFF:
                     success = await self._device.power_off()
                 case media_player.Commands.TOGGLE:
                     if self.attributes.get(media_player.Attributes.STATE) == media_player.States.OFF:
                         success = await self._device.power_on()
+                        poll_after = False
                     else:
                         success = await self._device.power_off()
                 case media_player.Commands.VOLUME:
@@ -172,7 +175,7 @@ class EversoloMediaPlayer(MediaPlayerEntity):
                 case _:
                     return StatusCodes.NOT_IMPLEMENTED
 
-            if success:
+            if success and poll_after:
                 await self._device.poll_device()
             return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
 

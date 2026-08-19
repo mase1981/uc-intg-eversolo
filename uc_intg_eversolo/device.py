@@ -95,15 +95,24 @@ class EversoloDevice(PollingDevice):
         _LOG.info("[%s] Establishing connection", self.log_id)
         await self._create_session()
 
-        music_state = await self._api_request(
-            "/ZidooMusicControl/v2/getState", timeout=15.0
-        )
-        _LOG.info("[%s] Connection established", self.log_id)
+        try:
+            music_state = await self._api_request(
+                "/ZidooMusicControl/v2/getState", timeout=15.0
+            )
+            _LOG.info("[%s] Connection established", self.log_id)
 
-        if not self._device_config.mac_address:
-            await self._fetch_and_store_mac_address(music_state)
+            if not self._device_config.mac_address:
+                await self._fetch_and_store_mac_address(music_state)
 
-        await self.poll_device()
+            await self.poll_device()
+        except Exception as err:
+            _LOG.warning(
+                "[%s] Device unreachable at connect, poll loop will retry: %s",
+                self.log_id, err,
+            )
+            self._state_data["device_reachable"] = False
+            self.push_update()
+
         return self._session
 
     async def close_connection(self) -> None:
