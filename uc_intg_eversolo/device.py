@@ -146,10 +146,10 @@ class EversoloDevice(PollingDevice):
                     return await response.json(content_type=None)
                 return await response.read()
         except asyncio.TimeoutError:
-            _LOG.error("[%s] Request timeout: %s", self.log_id, endpoint)
+            _LOG.debug("[%s] Request timeout: %s", self.log_id, endpoint)
             raise
         except aiohttp.ClientError as err:
-            _LOG.error("[%s] Request error: %s - %s", self.log_id, endpoint, err)
+            _LOG.debug("[%s] Request error: %s - %s", self.log_id, endpoint, err)
             raise
         except Exception as err:
             _LOG.error("[%s] Unexpected error: %s - %s", self.log_id, endpoint, err)
@@ -209,7 +209,9 @@ class EversoloDevice(PollingDevice):
             self.push_update()
 
         except Exception as err:
-            _LOG.warning("[%s] Device unreachable: %s", self.log_id, err)
+            if self._state_data.get("device_reachable", True):
+                # Logged once per outage, not every poll.
+                _LOG.warning("[%s] Device unreachable: %s", self.log_id, err)
             self._state_data["device_reachable"] = False
             self.push_update()
 
@@ -667,5 +669,5 @@ class EversoloDevice(PollingDevice):
             result = await self._api_request("/ZidooControlCenter/getModel")
             return result if result else None
         except Exception as err:
-            _LOG.error("[%s] Get device model failed: %s", self.log_id, err)
+            _LOG.debug("[%s] Get device model failed: %s", self.log_id, err)
             return None

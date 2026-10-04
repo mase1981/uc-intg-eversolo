@@ -5,6 +5,7 @@ Eversolo remote entities with model-specific UI pages.
 :license: MPL-2.0, see LICENSE for more details.
 """
 
+import asyncio
 import logging
 from typing import Any
 
@@ -115,9 +116,40 @@ class _EversoloRemoteBase(RemoteEntity):
     async def _handle_command(
         self, entity: Any, cmd_id: str, params: dict[str, Any] | None
     ) -> StatusCodes:
-        if cmd_id == "send_cmd" and params and "command" in params:
-            cmd_id = params["command"]
+        params = params or {}
+        if cmd_id == remote.Commands.SEND_CMD:
+            commands = [params.get("command", "")]
+        elif cmd_id == remote.Commands.SEND_CMD_SEQUENCE:
+            commands = params.get("sequence") or []
+            if isinstance(commands, str):
+                commands = commands.split(",")
+        else:
+            commands = [cmd_id]
+        commands = [str(command).strip().upper() for command in commands if str(command).strip()]
+        if not commands:
+            return StatusCodes.BAD_REQUEST
 
+        repeat, delay = _repeat_delay(params)
+        poll_after = False
+        first = True
+        for _ in range(repeat):
+            for command in commands:
+                if not first and delay:
+                    await asyncio.sleep(delay)
+                first = False
+                status, poll = await self._run_one(command)
+                poll_after = poll_after or poll
+                if status != StatusCodes.OK:
+                    return status
+        if poll_after:
+            try:
+                await self._device.poll_device()
+            except Exception as err:  # pylint: disable=broad-exception-caught
+                _LOG.debug("[%s] Poll after command failed: %s", self.id, err)
+        return StatusCodes.OK
+
+    async def _run_one(self, cmd_id: str) -> tuple[StatusCodes, bool]:
+        """Run one command; returns (status, whether a state poll should follow)."""
         try:
             success = True
             poll_after = False
@@ -133,7 +165,10 @@ class _EversoloRemoteBase(RemoteEntity):
                 success = await self._device.previous_track()
                 poll_after = True
             elif cmd_id == "POWER_TOGGLE":
-                success = await self._device.power_off()
+                if self._device.device_reachable:
+                    success = await self._device.power_off()
+                else:
+                    success = await self._device.power_on()
 
             # Volume
             elif cmd_id == "VOLUME_UP":
@@ -185,15 +220,13 @@ class _EversoloRemoteBase(RemoteEntity):
                 success = await self._device.set_knob_brightness(max(0, current - 20))
 
             else:
-                return StatusCodes.NOT_IMPLEMENTED
+                return StatusCodes.NOT_IMPLEMENTED, False
 
-            if poll_after and success:
-                await self._device.poll_device()
-            return StatusCodes.OK if success else StatusCodes.SERVER_ERROR
+            return (StatusCodes.OK if success else StatusCodes.SERVER_ERROR), (poll_after and success)
 
         except Exception as err:
             _LOG.error("[%s] Command error: %s", self.id, err)
-            return StatusCodes.SERVER_ERROR
+            return StatusCodes.SERVER_ERROR, False
 
 
 class EversoloRemoteA6(_EversoloRemoteBase):
@@ -264,6 +297,19 @@ class EversoloRemoteA10(_EversoloRemoteBase):
             },
             self._brightness_page_no_knob(),
         ]
+
+
+def _repeat_delay(params: dict[str, Any]) -> tuple[int, float]:
+    """Repeat count (at least 1) and delay in seconds from the command parameters."""
+    try:
+        repeat = max(1, int(params.get("repeat") or 1))
+    except (TypeError, ValueError):
+        repeat = 1
+    try:
+        delay = max(0, int(params.get("delay") or 0)) / 1000
+    except (TypeError, ValueError):
+        delay = 0.0
+    return repeat, delay
 
 
 def create_remote(config: EversoloConfig, device: EversoloDevice):
