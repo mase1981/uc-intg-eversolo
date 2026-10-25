@@ -18,6 +18,26 @@ from uc_intg_eversolo.config import EversoloConfig
 _LOG = logging.getLogger(__name__)
 
 
+def _same_track_web_art(playing_music: dict, audio_info: dict) -> str | None:
+    """Cover from playingMusic when it describes the track the renderer is playing.
+
+    For LMS over DLNA, albumUrl is built from the LMS track id, which LMS only
+    serves for library tracks (streamed tracks return HTTP 500), while
+    playingMusic.albumArt uses the LMS cover id and works for both. playingMusic
+    can be left over from earlier internal playback, so it is used only when
+    title and artist match and the cover is a web address.
+    """
+    if not playing_music.get("title") or playing_music.get("title") != audio_info.get("songName"):
+        return None
+    if playing_music.get("artist") != audio_info.get("artistName"):
+        return None
+    for key in ("albumArt", "albumArtBig"):
+        url = playing_music.get(key)
+        if isinstance(url, str) and url.startswith(("http://", "https://")):
+            return url
+    return None
+
+
 class EversoloDevice(PollingDevice):
 
     def __init__(self, device_config: EversoloConfig, **kwargs):
@@ -294,10 +314,12 @@ class EversoloDevice(PollingDevice):
                 music_state.get("everSoloPlayInfo", {})
                 .get("everSoloPlayAudioInfo", {})
             )
+            playing_music = music_state.get("playingMusic", {})
             info["title"] = audio_info.get("songName")
             info["artist"] = audio_info.get("artistName")
             info["album"] = audio_info.get("albumName")
             info["image_url"] = (
+                _same_track_web_art(playing_music, audio_info) or
                 audio_info.get("albumUrl") or audio_info.get("albumArt") or
                 audio_info.get("artwork") or audio_info.get("coverArt") or
                 audio_info.get("image") or audio_info.get("thumb")
