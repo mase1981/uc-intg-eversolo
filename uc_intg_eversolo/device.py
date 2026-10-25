@@ -314,7 +314,7 @@ class EversoloDevice(PollingDevice):
                 music_state.get("everSoloPlayInfo", {})
                 .get("everSoloPlayAudioInfo", {})
             )
-            playing_music = music_state.get("playingMusic", {})
+            playing_music = music_state.get("playingMusic") or {}
             info["title"] = audio_info.get("songName")
             info["artist"] = audio_info.get("artistName")
             info["album"] = audio_info.get("albumName")
@@ -326,7 +326,7 @@ class EversoloDevice(PollingDevice):
             )
             info["media_type"] = "MUSIC"
         elif play_type == 5:
-            playing_music = music_state.get("playingMusic", {})
+            playing_music = music_state.get("playingMusic") or {}
             info["title"] = playing_music.get("title")
             info["artist"] = playing_music.get("artist")
             info["album"] = playing_music.get("album")
@@ -341,7 +341,7 @@ class EversoloDevice(PollingDevice):
                 music_state.get("everSoloPlayInfo", {})
                 .get("everSoloPlayAudioInfo", {})
             )
-            playing_music = music_state.get("playingMusic", {})
+            playing_music = music_state.get("playingMusic") or {}
             info["title"] = playing_music.get("title") or audio_info.get("songName")
             info["artist"] = playing_music.get("artist") or audio_info.get("artistName")
             info["album"] = playing_music.get("album") or audio_info.get("albumName")
